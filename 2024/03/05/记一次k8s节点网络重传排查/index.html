@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="值班的时候有用户报障他们的一个定时job有超时，他们自己抓包发现网络有重传认为我们的k8s网络有问题 看了下历史记录问，题是去年提出的，之前同事已经测试过长ping，且抓包未发现异常，他们发现访问的服务端和客户端的pod都在同一个节点上，怀疑用户业务自身问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记一次k8s节点网络重传排查">
+<meta property="og:url" content="http://blog.naturelr.cc/2024/03/05/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="值班的时候有用户报障他们的一个定时job有超时，他们自己抓包发现网络有重传认为我们的k8s网络有问题 看了下历史记录问，题是去年提出的，之前同事已经测试过长ping，且抓包未发现异常，他们发现访问的服务端和客户端的pod都在同一个节点上，怀疑用户业务自身问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.naturelr.cc/images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-3.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-4.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-2.png.png">
+<meta property="article:published_time" content="2024-03-05T07:05:00.000Z">
+<meta property="article:modified_time" content="2024-03-06T10:09:18.661Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="故障处理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.naturelr.cc/images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-1.png">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2024/03/05/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2024/03/05/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5/","path":"2024/03/05/记一次k8s节点网络重传排查/","title":"记一次k8s节点网络重传排查"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>记一次k8s节点网络重传排查 | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%8F%E8%BF%87"><span class="nav-number">1.</span> <span class="nav-text">经过</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2024/03/05/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="记一次k8s节点网络重传排查 | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          记一次k8s节点网络重传排查
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-03-05 15:05:00" itemprop="dateCreated datePublished" datetime="2024-03-05T15:05:00+08:00">2024-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-03-06 18:09:18" itemprop="dateModified" datetime="2024-03-06T18:09:18+08:00">2024-03-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>值班的时候有用户报障他们的一个定时job有超时，他们自己抓包发现网络有重传认为我们的k8s网络有问题</p>
+<p>看了下历史记录问，题是去年提出的，之前同事已经测试过长ping，且抓包未发现异常，他们发现访问的服务端和客户端的pod都在同一个节点上，怀疑用户业务自身问题</p>
+<span id="more"></span>
+
+<h4 id="经过"><a href="#经过" class="headerlink" title="经过"></a>经过</h4><p>年后来了之后，用户依然出现超时问题，查看用户集群有ingress询问用户是否经过ingress过到服务端，且用户反应出现此类问题的不只是这一个业务以及测试集群也有出现</p>
+<p>从现象来看此时我也认为是客户自身业务导致，但是客户坚持认为和业务没关系</p>
+<p>客户提供了一个是集群让我们测试，以及出问题的pod</p>
+<p>于是就在客户的测试集群中使用ab测试出问题的那些pod的网络情况，并没有发现问题,因为ab没有按时间探测的功能所有把包给加大了，测试了同node和不同node</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ab -c 10 -t 1000 -n 10000000 http://&lt;ip&gt;/</span><br></pre></td></tr></table></figure>
+
+<p>在测试3天之后发现ab中偶有超时最长是1000ms+，此时怀疑可能网络有问题了但不是那么的确定，因为重传有很多原因</p>
+<p>同时登录上客户的机器看了cpu，内存等情况，发现客户的内存的free很少，网卡有丢包统计但是不是很多<code>ethtool -S etho</code>等命令查看队列等，没有发现太多相关性</p>
+<p>客户表示出问题已经几个月且没有啥变更，同时我们和技术支持还有部门其他同事一块开了个会议，其他同事也进行了排查也没发现问题所在，且怀疑svc导致的得到的答复并没有svc，是pod和pod直接连接</p>
+<p>同时我们提出试试重启pod来尝试下，我又用ab压测的同时抓包，且约了客户会议</p>
+<p>抓包的结果有大量的rst，改下之后rst减少所以我认为这个属于压测问题</p>
+<p>和客户会议得知客户的服务调用链和我们之前了解的略有出入,此时心中感觉有些希望</p>
+<p>整个调用链中多了个ingress，我觉得可能是ingress导致的，查看了下ingress日志也没发现一些异常，询问用户是否可以排除ingress直接访问得到了否定的结果</p>
+<p><img src="/../images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-1.png" alt="alt text"></p>
+<p>和客户会议后的第二天客户表示问题依然出现，客户部署了监控之后我们看监控也是正常的</p>
+<p>此时想抓出问题的时候的ingress包，则在客户的生产环境的node上执行了一个抓包，同时查看tcp重传相关</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup  tcpdump -i any src host &lt;src_ip&gt; and dst host &lt;dest_ip&gt; -w test.pcap &amp;</span><br></pre></td></tr></table></figure>
+
+<p>经过一夜抓包之后使用wireshark分析发现有大量的重传和重复确认的包，在分析包中的时候顺吧看了下系统日志,发现里面有一些oom且内存free较少，将oom和内存的情况反馈给客户</p>
+<p><img src="/../images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-3.png" alt="alt text"></p>
+<p>同时让客户看了下服务端的资源情况也没发现异常，客户反馈oom的是logstash并问是否有关系，我回复关系不大</p>
+<p>此时将抓包的截图发给网络的同事让帮看看，网络的同事一看说你抓包有问题，因为在tcpdump中<code>-i</code>参数使用了any，机器内的包经过了2个网卡就会出现wireshark中有大量的重传和重复确认包</p>
+<p>恍然大悟于是改进了抓包机制，只抓pod网卡的包摒弃了<code>-i any</code>参数</p>
+<p>又抓了一夜的包。。。</p>
+<p>不如意外故障依旧，但这次抓包中就没有满屏的重传和重复确认包，但是依然有重传且和客户超时的时间前后脚</p>
+<p><img src="/../images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-4.png" alt="alt text"></p>
+<p>同时将截图发给了网络的同事帮确认下，他们怀疑丢包，但是需要2端同时抓包来确认丢包</p>
+<p>已经连续抓包了好几次这次想彻底一点，让网络的同事从底层抓包将所有的客户端和server都进行抓包</p>
+<p>中途上厕所遇到了负责内核的同事，他也参加了和客户的会议，我将我这几天的情况告诉他，他说等会他看下</p>
+<p>他登录到机器之后和我们之前一样查了下cpu，内存等资源，最后他在看日志的时候发现oom了，他说这个可能会导致网络超时，</p>
+<p>我问他为啥 他说内核在执行oom的时候会放下其他工作专注杀死oom的进程，但是杀死的进程时间太长了就可能导致网络收发包出问题</p>
+<p><img src="/../images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-2.png.png" alt="alt text"></p>
+<p>没错就是那个oom的logstash！！！</p>
+<p>于是让客户将这个logstash加大内存，客户加了内存之后k8s将其调度到其他地方</p>
+<p>处理了oom第二天之后询问客户没有发现超时问题，为了防止被打脸就延长了网络的抓包时间</p>
+<p>新的一周开始问客户是否还发生，结果没发生。</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ol>
+<li><p>应该及时和客户沟通获取业务的调用链</p>
+</li>
+<li><p>wireshark分析会被<code>-i any</code>干扰</p>
+</li>
+<li><p>内核oom的时候会停止网络收发包等工作导致网络超时，至于oom事件过长是因为logstash有大约几百个线程</p>
+</li>
+</ol>
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1404089">https://cloud.tencent.com/developer/article/1404089</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+              <a href="/tags/%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/" rel="tag"># 故障处理</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/01/12/%E4%BD%BF%E7%94%A8netbird%E5%BC%82%E5%9C%B0%E7%BB%84%E7%BD%91/" rel="prev" title="使用netbird异地组网">
+                  <i class="fa fa-angle-left"></i> 使用netbird异地组网
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

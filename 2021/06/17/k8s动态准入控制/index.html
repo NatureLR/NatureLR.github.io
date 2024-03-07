@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="准入控制是k8s中用来提供安全控制的一个控制器，而动态控制则是用户定制的安全策略">
+<meta property="og:type" content="article">
+<meta property="og:title" content="k8s动态准入控制">
+<meta property="og:url" content="http://blog.naturelr.cc/2021/06/17/k8s%E5%8A%A8%E6%80%81%E5%87%86%E5%85%A5%E6%8E%A7%E5%88%B6/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="准入控制是k8s中用来提供安全控制的一个控制器，而动态控制则是用户定制的安全策略">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.naturelr.cc/images/pasted-24.png">
+<meta property="article:published_time" content="2021-06-17T03:28:00.000Z">
+<meta property="article:modified_time" content="2024-03-06T06:07:54.430Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="k8s">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.naturelr.cc/images/pasted-24.png">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2021/06/17/k8s%E5%8A%A8%E6%80%81%E5%87%86%E5%85%A5%E6%8E%A7%E5%88%B6/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2021/06/17/k8s%E5%8A%A8%E6%80%81%E5%87%86%E5%85%A5%E6%8E%A7%E5%88%B6/","path":"2021/06/17/k8s动态准入控制/","title":"k8s动态准入控制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>k8s动态准入控制 | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A7%8D%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">种类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Mutating"><span class="nav-number">1.1.</span> <span class="nav-text">Mutating</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Validating"><span class="nav-number">1.2.</span> <span class="nav-text">Validating</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%96%E5%86%99webhook"><span class="nav-number">3.</span> <span class="nav-text">编写webhook</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E8%AF%81%E4%B9%A6"><span class="nav-number">3.1.</span> <span class="nav-text">创建证书</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1-%E5%B0%86%E4%B8%8B%E9%9D%A2%E7%9A%84%E8%84%9A%E6%9C%AC%E4%BF%9D%E5%AD%98%E4%B8%BAcreate-self-signed-cert-sh"><span class="nav-number">3.1.1.</span> <span class="nav-text">1. 将下面的脚本保存为create_self-signed-cert.sh</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2-%E7%84%B6%E5%90%8E%E6%89%A7%E8%A1%8C%E4%B8%8B%E9%9D%A2%E7%9A%84%E5%91%BD%E4%BB%A4"><span class="nav-number">3.1.2.</span> <span class="nav-text">2. 然后执行下面的命令</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#3-%E4%BC%9A%E5%9C%A8%E7%9B%AE%E5%BD%95%E9%87%8C%E7%94%9F%E6%88%90%E4%B8%80%E5%A5%97%E8%AF%81%E4%B9%A6%E5%92%8C%E7%A7%98%E9%92%A5"><span class="nav-number">3.1.3.</span> <span class="nav-text">3. 会在目录里生成一套证书和秘钥</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BC%96%E5%86%99yaml%E6%96%87%E4%BB%B6"><span class="nav-number">3.2.</span> <span class="nav-text">编写yaml文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BC%80%E5%8F%91webhook"><span class="nav-number">3.3.</span> <span class="nav-text">开发webhook</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E9%AA%8C%E8%AF%81"><span class="nav-number">3.4.</span> <span class="nav-text">测试验证</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">4.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2021/06/17/k8s%E5%8A%A8%E6%80%81%E5%87%86%E5%85%A5%E6%8E%A7%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="k8s动态准入控制 | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          k8s动态准入控制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-06-17 11:28:00" itemprop="dateCreated datePublished" datetime="2021-06-17T11:28:00+08:00">2021-06-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-03-06 14:07:54" itemprop="dateModified" datetime="2024-03-06T14:07:54+08:00">2024-03-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>准入控制是k8s中用来提供安全控制的一个控制器，而动态控制则是用户定制的安全策略</p>
+<span id="more"></span>
+
+<h4 id="种类"><a href="#种类" class="headerlink" title="种类"></a>种类</h4><blockquote>
+<p>动态准入控制分为两种，分别为Mutating，Validating</p>
+</blockquote>
+<h5 id="Mutating"><a href="#Mutating" class="headerlink" title="Mutating"></a>Mutating</h5><p>Mutating主要为修改性质的，在api调用完成之后k8s会根据<code>ValidatingWebhookConfiguration</code>中的条件发送给配置的webhook服务，webhook服务根据业务逻辑进行修改，比如说大名鼎鼎的istio的Sidecar注入就是于此</p>
+<h5 id="Validating"><a href="#Validating" class="headerlink" title="Validating"></a>Validating</h5><p>Validating主要为验证性质的，主要看是不是符合条件集群要求，比方说为了高可用不允许设置副本数为1的类型为deployment的请求</p>
+<h4 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h4><blockquote>
+<p>下图所显的是api请求的流程<br><img src="/../images/pasted-24.png" alt="upload successful"></p>
+</blockquote>
+<h4 id="编写webhook"><a href="#编写webhook" class="headerlink" title="编写webhook"></a>编写webhook</h4><h5 id="创建证书"><a href="#创建证书" class="headerlink" title="创建证书"></a>创建证书</h5><blockquote>
+<p>创建证书的的程序很多比较出名的是<code>openssl</code>，这里我们使用rancher提供的一个自动生成证书的脚本</p>
+</blockquote>
+<h6 id="1-将下面的脚本保存为create-self-signed-cert-sh"><a href="#1-将下面的脚本保存为create-self-signed-cert-sh" class="headerlink" title="1. 将下面的脚本保存为create_self-signed-cert.sh"></a>1. 将下面的脚本保存为<code>create_self-signed-cert.sh</code></h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash -e</span></span><br><span class="line"></span><br><span class="line">help ()</span><br><span class="line">&#123;</span><br><span class="line">    echo  &#x27; ================================================================ &#x27;</span><br><span class="line">    echo  &#x27; --ssl-domain: 生成ssl证书需要的主域名，如不指定则默认为www.rancher.local，如果是ip访问服务，则可忽略；&#x27;</span><br><span class="line">    echo  &#x27; --ssl-trusted-ip: 一般ssl证书只信任域名的访问请求，有时候需要使用ip去访问server，那么需要给ssl证书添加扩展IP，多个IP用逗号隔开；&#x27;</span><br><span class="line">    echo  &#x27; --ssl-trusted-domain: 如果想多个域名访问，则添加扩展域名（SSL_TRUSTED_DOMAIN）,多个扩展域名用逗号隔开；&#x27;</span><br><span class="line">    echo  &#x27; --ssl-size: ssl加密位数，默认2048；&#x27;</span><br><span class="line">    echo  &#x27; --ssl-cn: 国家代码(2个字母的代号),默认CN;&#x27;</span><br><span class="line">    echo  &#x27; 使用示例:&#x27;</span><br><span class="line">    echo  &#x27; ./create_self-signed-cert.sh --ssl-domain=www.test.com --ssl-trusted-domain=www.test2.com \ &#x27;</span><br><span class="line">    echo  &#x27; --ssl-trusted-ip=1.1.1.1,2.2.2.2,3.3.3.3 --ssl-size=2048 --ssl-date=3650&#x27;</span><br><span class="line">    echo  &#x27; ================================================================&#x27;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">case &quot;$1&quot; in</span><br><span class="line">    -h|--help) help; exit;;</span><br><span class="line">esac</span><br><span class="line"></span><br><span class="line">if [[ $1 == &#x27;&#x27; ]];then</span><br><span class="line">    help;</span><br><span class="line">    exit;</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">CMDOPTS=&quot;$*&quot;</span><br><span class="line">for OPTS in $CMDOPTS;</span><br><span class="line">do</span><br><span class="line">    key=$(echo $&#123;OPTS&#125; | awk -F&quot;=&quot; &#x27;&#123;print $1&#125;&#x27; )</span><br><span class="line">    value=$(echo $&#123;OPTS&#125; | awk -F&quot;=&quot; &#x27;&#123;print $2&#125;&#x27; )</span><br><span class="line">    case &quot;$key&quot; in</span><br><span class="line">        --ssl-domain) SSL_DOMAIN=$value ;;</span><br><span class="line">        --ssl-trusted-ip) SSL_TRUSTED_IP=$value ;;</span><br><span class="line">        --ssl-trusted-domain) SSL_TRUSTED_DOMAIN=$value ;;</span><br><span class="line">        --ssl-size) SSL_SIZE=$value ;;</span><br><span class="line">        --ssl-date) SSL_DATE=$value ;;</span><br><span class="line">        --ca-date) CA_DATE=$value ;;</span><br><span class="line">        --ssl-cn) CN=$value ;;</span><br><span class="line">    esac</span><br><span class="line">done</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">CA相关配置</span></span><br><span class="line">CA_DATE=$&#123;CA_DATE:-3650&#125;</span><br><span class="line">CA_KEY=$&#123;CA_KEY:-cakey.pem&#125;</span><br><span class="line">CA_CERT=$&#123;CA_CERT:-cacerts.pem&#125;</span><br><span class="line">CA_DOMAIN=cattle-ca</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">ssl相关配置</span></span><br><span class="line">SSL_CONFIG=$&#123;SSL_CONFIG:-$PWD/openssl.cnf&#125;</span><br><span class="line">SSL_DOMAIN=$&#123;SSL_DOMAIN:-&#x27;www.rancher.local&#x27;&#125;</span><br><span class="line">SSL_DATE=$&#123;SSL_DATE:-3650&#125;</span><br><span class="line">SSL_SIZE=$&#123;SSL_SIZE:-2048&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment"># 国家代码(2个字母的代号),默认CN;</span></span></span><br><span class="line">CN=$&#123;CN:-CN&#125;</span><br><span class="line"></span><br><span class="line">SSL_KEY=$SSL_DOMAIN.key</span><br><span class="line">SSL_CSR=$SSL_DOMAIN.csr</span><br><span class="line">SSL_CERT=$SSL_DOMAIN.crt</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ---------------------------- \033[0m&quot;</span><br><span class="line">echo -e &quot;\033[32m       | 生成 SSL Cert |       \033[0m&quot;</span><br><span class="line">echo -e &quot;\033[32m ---------------------------- \033[0m&quot;</span><br><span class="line"></span><br><span class="line">if [[ -e ./$&#123;CA_KEY&#125; ]]; then</span><br><span class="line">    echo -e &quot;\033[32m ====&gt; 1. 发现已存在CA私钥，备份&quot;$&#123;CA_KEY&#125;&quot;为&quot;$&#123;CA_KEY&#125;&quot;-bak，然后重新创建 \033[0m&quot;</span><br><span class="line">    mv $&#123;CA_KEY&#125; &quot;$&#123;CA_KEY&#125;&quot;-bak</span><br><span class="line">    openssl genrsa -out $&#123;CA_KEY&#125; $&#123;SSL_SIZE&#125;</span><br><span class="line">else</span><br><span class="line">    echo -e &quot;\033[32m ====&gt; 1. 生成新的CA私钥 $&#123;CA_KEY&#125; \033[0m&quot;</span><br><span class="line">    openssl genrsa -out $&#123;CA_KEY&#125; $&#123;SSL_SIZE&#125;</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">if [[ -e ./$&#123;CA_CERT&#125; ]]; then</span><br><span class="line">    echo -e &quot;\033[32m ====&gt; 2. 发现已存在CA证书，先备份&quot;$&#123;CA_CERT&#125;&quot;为&quot;$&#123;CA_CERT&#125;&quot;-bak，然后重新创建 \033[0m&quot;</span><br><span class="line">    mv $&#123;CA_CERT&#125; &quot;$&#123;CA_CERT&#125;&quot;-bak</span><br><span class="line">    openssl req -x509 -sha256 -new -nodes -key $&#123;CA_KEY&#125; -days $&#123;CA_DATE&#125; -out $&#123;CA_CERT&#125; -subj &quot;/C=$&#123;CN&#125;/CN=$&#123;CA_DOMAIN&#125;&quot;</span><br><span class="line">else</span><br><span class="line">    echo -e &quot;\033[32m ====&gt; 2. 生成新的CA证书 $&#123;CA_CERT&#125; \033[0m&quot;</span><br><span class="line">    openssl req -x509 -sha256 -new -nodes -key $&#123;CA_KEY&#125; -days $&#123;CA_DATE&#125; -out $&#123;CA_CERT&#125; -subj &quot;/C=$&#123;CN&#125;/CN=$&#123;CA_DOMAIN&#125;&quot;</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ====&gt; 3. 生成Openssl配置文件 $&#123;SSL_CONFIG&#125; \033[0m&quot;</span><br><span class="line">cat &gt; $&#123;SSL_CONFIG&#125; &lt;&lt;EOM</span><br><span class="line">[req]</span><br><span class="line">req_extensions = v3_req</span><br><span class="line">distinguished_name = req_distinguished_name</span><br><span class="line">[req_distinguished_name]</span><br><span class="line">[ v3_req ]</span><br><span class="line">basicConstraints = CA:FALSE</span><br><span class="line">keyUsage = nonRepudiation, digitalSignature, keyEncipherment</span><br><span class="line">extendedKeyUsage = clientAuth, serverAuth</span><br><span class="line">EOM</span><br><span class="line"></span><br><span class="line">if [[ -n $&#123;SSL_TRUSTED_IP&#125; || -n $&#123;SSL_TRUSTED_DOMAIN&#125; ]]; then</span><br><span class="line">    cat &gt;&gt; $&#123;SSL_CONFIG&#125; &lt;&lt;EOM</span><br><span class="line">subjectAltName = @alt_names</span><br><span class="line">[alt_names]</span><br><span class="line">EOM</span><br><span class="line">    IFS=&quot;,&quot;</span><br><span class="line">    dns=($&#123;SSL_TRUSTED_DOMAIN&#125;)</span><br><span class="line">    dns+=($&#123;SSL_DOMAIN&#125;)</span><br><span class="line">    for i in &quot;$&#123;!dns[@]&#125;&quot;; do</span><br><span class="line">      echo DNS.$((i+1)) = $&#123;dns[$i]&#125; &gt;&gt; $&#123;SSL_CONFIG&#125;</span><br><span class="line">    done</span><br><span class="line"></span><br><span class="line">    if [[ -n $&#123;SSL_TRUSTED_IP&#125; ]]; then</span><br><span class="line">        ip=($&#123;SSL_TRUSTED_IP&#125;)</span><br><span class="line">        for i in &quot;$&#123;!ip[@]&#125;&quot;; do</span><br><span class="line">          echo IP.$((i+1)) = $&#123;ip[$i]&#125; &gt;&gt; $&#123;SSL_CONFIG&#125;</span><br><span class="line">        done</span><br><span class="line">    fi</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ====&gt; 4. 生成服务SSL KEY $&#123;SSL_KEY&#125; \033[0m&quot;</span><br><span class="line">openssl genrsa -out $&#123;SSL_KEY&#125; $&#123;SSL_SIZE&#125;</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ====&gt; 5. 生成服务SSL CSR $&#123;SSL_CSR&#125; \033[0m&quot;</span><br><span class="line">openssl req -sha256 -new -key $&#123;SSL_KEY&#125; -out $&#123;SSL_CSR&#125; -subj &quot;/C=$&#123;CN&#125;/CN=$&#123;SSL_DOMAIN&#125;&quot; -config $&#123;SSL_CONFIG&#125;</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ====&gt; 6. 生成服务SSL CERT $&#123;SSL_CERT&#125; \033[0m&quot;</span><br><span class="line">openssl x509 -sha256 -req -in $&#123;SSL_CSR&#125; -CA $&#123;CA_CERT&#125; \</span><br><span class="line">    -CAkey $&#123;CA_KEY&#125; -CAcreateserial -out $&#123;SSL_CERT&#125; \</span><br><span class="line">    -days $&#123;SSL_DATE&#125; -extensions v3_req \</span><br><span class="line">    -extfile $&#123;SSL_CONFIG&#125;</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ====&gt; 7. 证书制作完成 \033[0m&quot;</span><br><span class="line">echo</span><br><span class="line">echo -e &quot;\033[32m ====&gt; 8. 以YAML格式输出结果 \033[0m&quot;</span><br><span class="line">echo &quot;----------------------------------------------------------&quot;</span><br><span class="line">echo &quot;ca_key: |&quot;</span><br><span class="line">cat $CA_KEY | sed &#x27;s/^/  /&#x27;</span><br><span class="line">echo</span><br><span class="line">echo &quot;ca_cert: |&quot;</span><br><span class="line">cat $CA_CERT | sed &#x27;s/^/  /&#x27;</span><br><span class="line">echo</span><br><span class="line">echo &quot;ssl_key: |&quot;</span><br><span class="line">cat $SSL_KEY | sed &#x27;s/^/  /&#x27;</span><br><span class="line">echo</span><br><span class="line">echo &quot;ssl_csr: |&quot;</span><br><span class="line">cat $SSL_CSR | sed &#x27;s/^/  /&#x27;</span><br><span class="line">echo</span><br><span class="line">echo &quot;ssl_cert: |&quot;</span><br><span class="line">cat $SSL_CERT | sed &#x27;s/^/  /&#x27;</span><br><span class="line">echo</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ====&gt; 9. 附加CA证书到Cert文件 \033[0m&quot;</span><br><span class="line">cat $&#123;CA_CERT&#125; &gt;&gt; $&#123;SSL_CERT&#125;</span><br><span class="line">echo &quot;ssl_cert: |&quot;</span><br><span class="line">cat $SSL_CERT | sed &#x27;s/^/  /&#x27;</span><br><span class="line">echo</span><br><span class="line"></span><br><span class="line">echo -e &quot;\033[32m ====&gt; 10. 重命名服务证书 \033[0m&quot;</span><br><span class="line">echo &quot;cp $&#123;SSL_DOMAIN&#125;.key tls.key&quot;</span><br><span class="line">cp $&#123;SSL_DOMAIN&#125;.key tls.key</span><br><span class="line">echo &quot;cp $&#123;SSL_DOMAIN&#125;.crt tls.crt&quot;</span><br><span class="line">cp $&#123;SSL_DOMAIN&#125;.crt tls.crt</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h6 id="2-然后执行下面的命令"><a href="#2-然后执行下面的命令" class="headerlink" title="2. 然后执行下面的命令"></a>2. 然后执行下面的命令</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./create_self-signed-cert.sh --ssl-domain=admission-example.admission-example.svc.cluster.local  --ssl-trusted-domain=admission-example,admission-example.admission-example.svc -ssl-trusted-ip=127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<h6 id="3-会在目录里生成一套证书和秘钥"><a href="#3-会在目录里生成一套证书和秘钥" class="headerlink" title="3. 会在目录里生成一套证书和秘钥"></a>3. 会在目录里生成一套证书和秘钥</h6><ul>
+<li>.key的为秘钥</li>
+<li>.crt为域名的证书</li>
+<li>csr文件为证书申请文件</li>
+<li>ca开头的为根证书和秘钥</li>
+</ul>
+<h5 id="编写yaml文件"><a href="#编写yaml文件" class="headerlink" title="编写yaml文件"></a>编写yaml文件</h5><blockquote>
+<p>编写MutatingWebhookConfiguration和ValidatingWebhookConfiguration</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">admissionregistration.k8s.io/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">MutatingWebhookConfiguration</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mutating-example</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">admission-example</span></span><br><span class="line"><span class="attr">webhooks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">admission-example.naturelr.cc</span></span><br><span class="line">    <span class="attr">clientConfig:</span></span><br><span class="line">      <span class="attr">service:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">admission-example</span></span><br><span class="line">        <span class="attr">namespace:</span> <span class="string">admission-example</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">&quot;/mutate&quot;</span></span><br><span class="line">        <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line">      <span class="comment"># 证书进行base64编码</span></span><br><span class="line">      <span class="attr">caBundle:</span> &#123;&#123;<span class="string">CA</span>&#125;&#125;</span><br><span class="line">    <span class="attr">rules:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">operations:</span> [ <span class="string">&quot;CREATE&quot;</span> ]</span><br><span class="line">        <span class="attr">apiGroups:</span> [<span class="string">&quot;apps&quot;</span>, <span class="string">&quot;&quot;</span>]</span><br><span class="line">        <span class="attr">apiVersions:</span> [<span class="string">&quot;v1&quot;</span>]</span><br><span class="line">        <span class="attr">resources:</span> [<span class="string">&quot;deployments&quot;</span>,<span class="string">&quot;services&quot;</span>]</span><br><span class="line">    <span class="attr">admissionReviewVersions:</span> [<span class="string">&quot;v1&quot;</span>, <span class="string">&quot;v1beta1&quot;</span>]</span><br><span class="line">    <span class="attr">sideEffects:</span> <span class="string">None</span></span><br><span class="line">    <span class="comment"># 只有ns上拥有admission-webhook-example: enabled才生效</span></span><br><span class="line">    <span class="attr">namespaceSelector:</span></span><br><span class="line">      <span class="attr">matchLabels:</span></span><br><span class="line">        <span class="attr">admission-webhook-example:</span> <span class="string">enabled</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">admissionregistration.k8s.io/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ValidatingWebhookConfiguration</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">validation-example</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">admission-example</span></span><br><span class="line"><span class="attr">webhooks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">admission-example.naturelr.cc</span></span><br><span class="line">    <span class="attr">clientConfig:</span></span><br><span class="line">      <span class="attr">service:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">admission-example</span></span><br><span class="line">        <span class="attr">namespace:</span> <span class="string">admission-example</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">&quot;/validate&quot;</span></span><br><span class="line">        <span class="attr">port:</span> <span class="number">8080</span></span><br><span class="line">      <span class="attr">caBundle:</span> &#123;&#123;<span class="string">CA</span>&#125;&#125;</span><br><span class="line">    <span class="attr">rules:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">operations:</span> [ <span class="string">&quot;CREATE&quot;</span> ]</span><br><span class="line">        <span class="attr">apiGroups:</span> [<span class="string">&quot;apps&quot;</span>, <span class="string">&quot;&quot;</span>]</span><br><span class="line">        <span class="attr">apiVersions:</span> [<span class="string">&quot;v1&quot;</span>]</span><br><span class="line">        <span class="attr">resources:</span> [<span class="string">&quot;deployments&quot;</span>,<span class="string">&quot;services&quot;</span>]</span><br><span class="line">    <span class="attr">admissionReviewVersions:</span> [<span class="string">&quot;v1&quot;</span>, <span class="string">&quot;v1beta1&quot;</span>]</span><br><span class="line">    <span class="attr">sideEffects:</span> <span class="string">None</span></span><br><span class="line">    <span class="attr">namespaceSelector:</span></span><br><span class="line">      <span class="attr">matchLabels:</span></span><br><span class="line">        <span class="attr">admission-webhook-example:</span> <span class="string">enabled</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="开发webhook"><a href="#开发webhook" class="headerlink" title="开发webhook"></a>开发webhook</h5><blockquote>
+<p>开发上面定义的两个接口validate，mutate</p>
+</blockquote>
+<p>监听的端口和上面配置的端口一直，且使用创建的证书</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">  http.HandleFunc(<span class="string">&quot;/validate&quot;</span>, validate)</span><br><span class="line">  http.HandleFunc(<span class="string">&quot;/mutate&quot;</span>, mutate)</span><br><span class="line">  http.HandleFunc(<span class="string">&quot;/ping&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">    fmt.Fprintln(w, <span class="string">&quot;pong&quot;</span>)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  svr := http.Server&#123;</span><br><span class="line">    Addr:         <span class="string">&quot;:8080&quot;</span>,</span><br><span class="line">    ReadTimeout:  time.Minute,</span><br><span class="line">    WriteTimeout: time.Minute,</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> *key == <span class="string">&quot;&quot;</span> || *cert == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">      fmt.Println(<span class="string">&quot;http服务启动成功&quot;</span>)</span><br><span class="line">      <span class="keyword">if</span> err := svr.ListenAndServe(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatalln(err)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fmt.Println(<span class="string">&quot;https服务启动成功&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> err := svr.ListenAndServeTLS(*cert, *key); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      log.Fatalln(err)</span><br><span class="line">  &#125;()  </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>实现mutate的部分，我们需要给满足条件的deployment和service添加一个名为<code>admission-example.naturelr.cc/status&quot;: &quot;test&quot;</code>的注解<br>这里和使用kubectl操作上很像只不过由代码返回给k8s</p>
+</blockquote>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">mutate</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">  <span class="comment">// 请求结构体</span></span><br><span class="line">  qar := admissionv1.AdmissionReview&#123;&#125;</span><br><span class="line">  _, _, err := serializer.NewCodecFactory(runtime.NewScheme()).UniversalDeserializer().Decode(body, <span class="literal">nil</span>, &amp;qar)</span><br><span class="line">  checkErr(err)  </span><br><span class="line">  <span class="keyword">type</span> patchOperation <span class="keyword">struct</span> &#123;</span><br><span class="line">    Op    <span class="type">string</span>      <span class="string">`json:&quot;op&quot;`</span></span><br><span class="line">    Path  <span class="type">string</span>      <span class="string">`json:&quot;path&quot;`</span></span><br><span class="line">    Value <span class="keyword">interface</span>&#123;&#125; <span class="string">`json:&quot;value,omitempty&quot;`</span></span><br><span class="line">  &#125;  </span><br><span class="line">  p := patchOperation&#123;</span><br><span class="line">    Op:    <span class="string">&quot;add&quot;</span>,</span><br><span class="line">    Path:  <span class="string">&quot;/metadata/annotations&quot;</span>,</span><br><span class="line">    Value: <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>&#123;<span class="string">&quot;admission-example.naturelr.cc/status&quot;</span>: <span class="string">&quot;test&quot;</span>&#125;,</span><br><span class="line">  &#125;</span><br><span class="line">  patch, err := json.Marshal([]patchOperation&#123;p&#125;)</span><br><span class="line">  checkErr(err)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 返回给k8s的消息</span></span><br><span class="line">  are := &amp;admissionv1.AdmissionReview&#123;</span><br><span class="line">    TypeMeta: apimetav1.TypeMeta&#123;</span><br><span class="line">      APIVersion: qar.APIVersion,</span><br><span class="line">      Kind:       qar.Kind,</span><br><span class="line">    &#125;,</span><br><span class="line">    Response: &amp;admissionv1.AdmissionResponse&#123;</span><br><span class="line">      Allowed: <span class="literal">true</span>,</span><br><span class="line">      Patch:   patch,</span><br><span class="line">      PatchType: <span class="function"><span class="keyword">func</span><span class="params">()</span></span> *admissionv1.PatchType &#123;</span><br><span class="line">        pt := admissionv1.PatchTypeJSONPatch</span><br><span class="line">        <span class="keyword">return</span> &amp;pt</span><br><span class="line">      &#125;(),</span><br><span class="line">      UID: qar.Request.UID,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  resp, err := json.Marshal(are)</span><br><span class="line">  checkErr(err)</span><br><span class="line">  fmt.Println(<span class="string">&quot;响应:&quot;</span>, <span class="type">string</span>(resp))</span><br><span class="line">  w.WriteHeader(<span class="number">200</span>)</span><br><span class="line">  w.Write(resp)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>validate中主要验证service和deployment中标签是否有admission字段如果就没有则拒绝访问</p>
+</blockquote>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">validate</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">    <span class="comment">// 请求结构体</span></span><br><span class="line">  qar := admissionv1.AdmissionReview&#123;&#125;</span><br><span class="line">  _, _, err := serializer.NewCodecFactory(runtime.NewScheme()).UniversalDeserializer().Decode(body, <span class="literal">nil</span>, &amp;qar)</span><br><span class="line">  checkErr(err</span><br><span class="line">  <span class="comment">// 处理逻辑 从请求的结构体判断是是否满足条件</span></span><br><span class="line">  <span class="keyword">var</span>  availableLabels <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span></span><br><span class="line">  </span><br><span class="line">  requiredLabels := <span class="string">&quot;admission&quot;</span></span><br><span class="line">  <span class="keyword">var</span> errMsg <span class="type">error</span></span><br><span class="line">  <span class="keyword">switch</span> qar.Request.Kind.Kind &#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="string">&quot;Deployment&quot;</span>:</span><br><span class="line">    <span class="keyword">var</span> deploy appsv1.Deployment</span><br><span class="line">    <span class="keyword">if</span> err := json.Unmarshal(qar.Request.Object.Raw, &amp;deploy); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      log.Println(<span class="string">&quot;无法解析格式:&quot;</span>, err)</span><br><span class="line">      errMsg = err</span><br><span class="line">    &#125;</span><br><span class="line">    availableLabels = deploy.Labels</span><br><span class="line">  <span class="keyword">case</span> <span class="string">&quot;Service&quot;</span>:</span><br><span class="line">    <span class="keyword">var</span> service corev1.Service</span><br><span class="line">    <span class="keyword">if</span> err := json.Unmarshal(qar.Request.Object.Raw, &amp;service); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      log.Println(<span class="string">&quot;无法解析格式:&quot;</span>, err)</span><br><span class="line">      errMsg = err</span><br><span class="line">    &#125;</span><br><span class="line">    availableLabels = service.Labels</span><br><span class="line">  <span class="keyword">default</span>:</span><br><span class="line">    msg := fmt.Sprintln(<span class="string">&quot;不能处理的类型：&quot;</span>, qar.Request.Kind.Kind)</span><br><span class="line">    log.Println(msg)</span><br><span class="line">    errMsg = errors.New(msg)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> status *apimetav1.Status</span><br><span class="line">  <span class="keyword">var</span> allowed <span class="type">bool</span></span><br><span class="line">  <span class="keyword">if</span> _, ok := availableLabels[requiredLabels]; !ok || errMsg != <span class="literal">nil</span> &#123;</span><br><span class="line">    msg := <span class="string">&quot;不符合条件&quot;</span></span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        msg = fmt.Sprintln(errMsg)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  status = &amp;apimetav1.Status&#123;</span><br><span class="line">      Message: msg,</span><br><span class="line">      Reason:  apimetav1.StatusReason(msg),</span><br><span class="line">      Code:    <span class="number">304</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    allowed = <span class="literal">false</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    Message: <span class="string">&quot;通过&quot;</span>,</span><br><span class="line">    status = &amp;apimetav1.Status&#123;</span><br><span class="line">     Reason:  <span class="string">&quot;通过&quot;</span>,</span><br><span class="line">     Code:    <span class="number">200</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    allowed = <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 返回给k8s的消息</span></span><br><span class="line">  are := &amp;admissionv1.AdmissionReview&#123;</span><br><span class="line">    TypeMeta: apimetav1.TypeMeta&#123;</span><br><span class="line">      APIVersion: qar.APIVersion,</span><br><span class="line">      Kind:       qar.Kind,</span><br><span class="line">    &#125;,</span><br><span class="line">    Response: &amp;admissionv1.AdmissionResponse&#123;</span><br><span class="line">      Allowed: allowed,</span><br><span class="line">      Result:  status,</span><br><span class="line">      UID:     qar.Request.UID,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  resp, err := json.Marshal(are)</span><br><span class="line">  checkErr(err)</span><br><span class="line">  fmt.Println(<span class="string">&quot;响应:&quot;</span>, <span class="type">string</span>(resp))</span><br><span class="line">  w.WriteHeader(<span class="number">200</span>)</span><br><span class="line">  w.Write(resp)</span><br></pre></td></tr></table></figure>
+
+<p>完整项目在<a target="_blank" rel="noopener" href="https://github.com/NatureLR/admission-example">https://github.com/NatureLR/admission-example</a></p>
+<h5 id="测试验证"><a href="#测试验证" class="headerlink" title="测试验证"></a>测试验证</h5><ul>
+<li>在打了<code>admission-webhook-example: enabled</code>标签下的ns中随便创建一个应用会发现被拒绝</li>
+<li>在给deployment打上了设定的标签之后就可以创建了，且deployment多了一个注解</li>
+</ul>
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://kubernetes.io/zh/docs/reference/access-authn-authz/admission-controllers/">https://kubernetes.io/zh/docs/reference/access-authn-authz/admission-controllers/</a><br><a target="_blank" rel="noopener" href="https://kubernetes.io/zh/docs/reference/access-authn-authz/extensible-admission-controllers/">https://kubernetes.io/zh/docs/reference/access-authn-authz/extensible-admission-controllers/</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/23/osquery/" rel="prev" title="osquery">
+                  <i class="fa fa-angle-left"></i> osquery
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/07/helm%E4%BD%BF%E7%94%A8/" rel="next" title="helm使用">
+                  helm使用 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

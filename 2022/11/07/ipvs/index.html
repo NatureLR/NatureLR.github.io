@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ipvs是个4层负载均衡器，常常用于服务的高可用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ipvs">
+<meta property="og:url" content="http://blog.naturelr.cc/2022/11/07/ipvs/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="ipvs是个4层负载均衡器，常常用于服务的高可用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-nat-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-nat-2.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-nat-3.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-nat-4.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-nat-5.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-dr-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-dr-2.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-ipip-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/ipvs-ipip-2.png">
+<meta property="article:published_time" content="2022-11-07T07:20:00.000Z">
+<meta property="article:modified_time" content="2024-03-06T06:07:54.426Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="负载均衡">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.naturelr.cc/images/ipvs-1.png">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2022/11/07/ipvs/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2022/11/07/ipvs/","path":"2022/11/07/ipvs/","title":"ipvs"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ipvs | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85ipvsadm"><span class="nav-number">1.</span> <span class="nav-text">安装ipvsadm</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AF%E8%AF%AD"><span class="nav-number">3.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">三种模式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#NAT"><span class="nav-number">4.1.</span> <span class="nav-text">NAT</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#NAT%E9%83%A8%E7%BD%B2"><span class="nav-number">4.1.1.</span> <span class="nav-text">NAT部署</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%90%8C%E4%B8%80%E4%B8%AA%E7%BD%91%E7%BB%9C%E8%AF%B4%E6%98%8E"><span class="nav-number">4.1.2.</span> <span class="nav-text">同一个网络说明</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%B5%81%E9%87%8F%E8%BD%AC%E5%8F%91%E8%B7%AF%E5%BE%84"><span class="nav-number">4.1.3.</span> <span class="nav-text">流量转发路径</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#DR"><span class="nav-number">4.2.</span> <span class="nav-text">DR</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#DR%E9%83%A8%E7%BD%B2"><span class="nav-number">4.2.1.</span> <span class="nav-text">DR部署</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%B5%81%E9%87%8F%E6%8A%93%E5%8C%85"><span class="nav-number">4.2.2.</span> <span class="nav-text">流量抓包</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%9A%A7%E9%81%93-IPIP"><span class="nav-number">4.3.</span> <span class="nav-text">隧道(IPIP)</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E9%9A%A7%E9%81%93-IPIP-%E9%83%A8%E7%BD%B2"><span class="nav-number">4.3.1.</span> <span class="nav-text">隧道(IPIP)部署</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#IPIP%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90"><span class="nav-number">4.3.2.</span> <span class="nav-text">IPIP流量分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E5%8F%82%E6%95%B0"><span class="nav-number">5.</span> <span class="nav-text">内核参数</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#arp-ignore"><span class="nav-number">5.1.</span> <span class="nav-text">arp_ignore</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#arp-announce"><span class="nav-number">5.2.</span> <span class="nav-text">arp_announce</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#rp-filter"><span class="nav-number">5.3.</span> <span class="nav-text">rp_filter</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95"><span class="nav-number">6.</span> <span class="nav-text">负载均衡算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ipvsadm%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">7.</span> <span class="nav-text">ipvsadm常用命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">8.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2022/11/07/ipvs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ipvs | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ipvs
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-11-07 15:20:00" itemprop="dateCreated datePublished" datetime="2022-11-07T15:20:00+08:00">2022-11-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-03-06 14:07:54" itemprop="dateModified" datetime="2024-03-06T14:07:54+08:00">2024-03-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>ipvs是个4层负载均衡器，常常用于服务的高可用</p>
+<span id="more"></span>
+
+<blockquote>
+<p>ipvs已经合并到linux内核当中，用户层面使用ipvsadm</p>
+</blockquote>
+<h4 id="安装ipvsadm"><a href="#安装ipvsadm" class="headerlink" title="安装ipvsadm"></a>安装ipvsadm</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install ipvsadm</span><br></pre></td></tr></table></figure>
+
+<h4 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h4><p><img src="/../images/ipvs-1.png" alt="ipvs"></p>
+<p>整个动作在内核态完成,跳过了一些链</p>
+<h4 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h4><table>
+<thead>
+<tr>
+<th>缩写</th>
+<th>全写</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CIP</td>
+<td>Client IP</td>
+<td>客户端ip</td>
+</tr>
+<tr>
+<td>VIP</td>
+<td>Virtual IP</td>
+<td>虚拟ip</td>
+</tr>
+<tr>
+<td>DIP</td>
+<td>Director Server IP</td>
+<td>负载均衡ip</td>
+</tr>
+<tr>
+<td>RIP</td>
+<td>Real Servier IP</td>
+<td>真正的后端服务ip</td>
+</tr>
+<tr>
+<td>DS</td>
+<td>Director Server</td>
+<td>部署负载均衡的服务器</td>
+</tr>
+<tr>
+<td>RS</td>
+<td>Real Server</td>
+<td>后端服务器</td>
+</tr>
+</tbody></table>
+<h4 id="三种模式"><a href="#三种模式" class="headerlink" title="三种模式"></a>三种模式</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>IP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CIP</td>
+<td>10.23.18.81</td>
+</tr>
+<tr>
+<td>VIP</td>
+<td>10.23.59.162</td>
+</tr>
+<tr>
+<td>DS</td>
+<td>10.23.12.87</td>
+</tr>
+<tr>
+<td>RS1</td>
+<td>10.23.197.23</td>
+</tr>
+<tr>
+<td>RS2</td>
+<td>10.23.9.198</td>
+</tr>
+</tbody></table>
+<h5 id="NAT"><a href="#NAT" class="headerlink" title="NAT"></a>NAT</h5><ul>
+<li>本质是个dnat</li>
+<li>流量出入都经过DR</li>
+<li>来回流量都从dr过dr会成为瓶颈</li>
+<li>同一个网段时RS的默认网关需要指向DS,且本网段的路由需要删除不然不会通过默认路由到DR</li>
+</ul>
+<p><img src="/../images/ipvs-nat-1.png" alt="x"></p>
+<h6 id="NAT部署"><a href="#NAT部署" class="headerlink" title="NAT部署"></a>NAT部署</h6><ul>
+<li>在DS配置规则</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">echo 1 &gt;/proc/sys/net/ipv4/ip_forward</span><br><span class="line"></span><br><span class="line">export VIP=10.23.59.162</span><br><span class="line">export RS1=10.23.197.23</span><br><span class="line">export RS2=10.23.9.198</span><br><span class="line"></span><br><span class="line">ipvsadm -A -t $VIP:80 -s rr</span><br><span class="line">ipvsadm -a -t $VIP:80 -r $RS1 -m</span><br><span class="line">ipvsadm -a -t $VIP:80 -r $RS2 -m</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看规则</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@10-23-12-87 ~]# ipvsadm -L -n</span><br><span class="line">IP Virtual Server version 1.2.1 (size=4096)</span><br><span class="line">Prot LocalAddress:Port Scheduler Flags</span><br><span class="line"><span class="meta prompt_">  -&gt; </span><span class="language-bash">RemoteAddress:Port           Forward Weight ActiveConn InActConn</span></span><br><span class="line">TCP  10.23.59.162:80 rr</span><br><span class="line"><span class="meta prompt_">  -&gt; </span><span class="language-bash">10.23.9.198:80               Masq    1      0          2</span></span><br><span class="line"><span class="meta prompt_">  -&gt; </span><span class="language-bash">10.23.197.23:80              Masq    1      0          1</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在RS上部署一个httpd用于判断访问到哪那台机器</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum -y install httpd &amp;&amp; systemctl start httpd</span><br><span class="line">echo &quot;i am rs $HOSTNAME&quot; &gt; /var/www/html/index.html</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>此时在rs上<code>curl 10.23.59.162</code>这个vip会轮询访问，此时cip是自己</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@10-23-12-87 ~]# curl 10.23.59.162</span><br><span class="line">i am rs 10-23-9-198</span><br><span class="line">[root@10-23-12-87 ~]# curl 10.23.59.162</span><br><span class="line">i am rs 10-23-197-23</span><br><span class="line">[root@10-23-12-87 ~]#</span><br></pre></td></tr></table></figure>
+
+<h6 id="同一个网络说明"><a href="#同一个网络说明" class="headerlink" title="同一个网络说明"></a>同一个网络说明</h6><p>client此时并不知道vip这个地址在哪,所以需要在dr上绑定vip,让隔壁的邻居知道vip的mac</p>
+<p>且由于vip和rs的地址都在同一个网段默认会通过二层直接到client,未经过dr的nat，导致client不认回包而被丢弃因此需要在rs上设置默认网关为dr</p>
+<ul>
+<li>dr执行</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip addr add 10.23.59.162 dev eth0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>RS上执行,将默认路由指向dr</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">export DS=10.23.12.87</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置默认路由</span></span><br><span class="line">ip route replace default via $DS</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除路由</span></span><br><span class="line">ip r del 10.23.0.0/16 dev eth0 proto kernel scope link src 10.23.197.23</span><br></pre></td></tr></table></figure>
+
+<h6 id="流量转发路径"><a href="#流量转发路径" class="headerlink" title="流量转发路径"></a>流量转发路径</h6><p><img src="/../images/ipvs-nat-2.png" alt="cl"><br><img src="/../images/ipvs-nat-3.png" alt="dr"><br><img src="/../images/ipvs-nat-4.png" alt="rs"></p>
+<p>通过抓包我可以看到client请求vip之后，dr接受到会将vip替换成rip然后发送给rs<br>rs收到之后因为会路由设置会发送给dr，dr将src地址再改回vip</p>
+<p><img src="/../images/ipvs-nat-5.png" alt="rs"></p>
+<h5 id="DR"><a href="#DR" class="headerlink" title="DR"></a>DR</h5><ul>
+<li><p>rs和ds需要在一个二层中</p>
+</li>
+<li><p>dr模式中客户端请求vip流量从ds通过修改mac地址来达到负载均衡</p>
+</li>
+<li><p>由于没有修改ip地址所以rs上需要添加vip到lo或者dummy类型的网口上，不然rs发现请求的ip不在本机就会被丢弃</p>
+</li>
+<li><p>由于rs的lo或者dummy的网卡上配置的有vip为了防止rs响应vip的请求，所以需要修改arp配置</p>
+</li>
+<li><p>不支持端口映射</p>
+</li>
+</ul>
+<h6 id="DR部署"><a href="#DR部署" class="headerlink" title="DR部署"></a>DR部署</h6><ul>
+<li>DS配置</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">export VIP=10.23.59.162</span><br><span class="line">export RS1=10.23.197.23</span><br><span class="line">export RS2=10.23.9.198</span><br><span class="line"></span><br><span class="line">ip link add vip type dummy</span><br><span class="line">ip addr add $VIP dev vip</span><br><span class="line"></span><br><span class="line">ipvsadm -A -t $VIP:80 -s rr</span><br><span class="line">ipvsadm -a -t $VIP:80 -r $RS1:80 -g</span><br><span class="line">ipvsadm -a -t $VIP:80 -r $RS2:80 -g</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>两个RS配置</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">部署http服务用于区分是否负载均衡</span></span><br><span class="line">yum -y install httpd &amp;&amp; systemctl start httpd</span><br><span class="line">echo &quot;i am rs $HOSTNAME&quot; &gt; /var/www/html/index.html</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">配置arp</span></span><br><span class="line">echo 1 &gt;/proc/sys/net/ipv4/conf/all/arp_ignore</span><br><span class="line">echo 2 &gt;/proc/sys/net/ipv4/conf/all/arp_announce</span><br><span class="line"></span><br><span class="line">export VIP=10.23.59.162</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">配置vip网卡(用dummy和lo都可以)</span></span><br><span class="line">ip link add vip type dummy</span><br><span class="line">ip addr add $VIP dev vip</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Client</li>
+</ul>
+<p>添加路由，原则来说因为在同一个交换机中直接通过二层,但是有些vpc的子网不是通过vpc创建的ip不会转发</p>
+<p>也可以查看云厂商的文档如vip或者辅助ip等来作为vip</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export VIP=10.23.59.162</span><br><span class="line">export DR=10.23.12.87</span><br><span class="line"></span><br><span class="line">ip r add $VIP/32 via $DR dev eth0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>测试</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@10-23-18-81 ~]# curl 10.23.59.162</span><br><span class="line">i am rs 10-23-197-23</span><br><span class="line">[root@10-23-18-81 ~]# curl 10.23.59.162</span><br><span class="line">i am rs 10-23-9-198</span><br></pre></td></tr></table></figure>
+
+<h6 id="流量抓包"><a href="#流量抓包" class="headerlink" title="流量抓包"></a>流量抓包</h6><p><img src="/../images/ipvs-dr-1.png" alt="dr"></p>
+<p><img src="/../images/ipvs-dr-2.png" alt="dr"></p>
+<p>图中可看出dr将mac地址换成类似rs的mac地址</p>
+<h5 id="隧道-IPIP"><a href="#隧道-IPIP" class="headerlink" title="隧道(IPIP)"></a>隧道(IPIP)</h5><h6 id="隧道-IPIP-部署"><a href="#隧道-IPIP-部署" class="headerlink" title="隧道(IPIP)部署"></a>隧道(IPIP)部署</h6><ul>
+<li>DR配置</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">export VIP=10.23.59.162</span><br><span class="line">export RS1=10.23.197.23</span><br><span class="line">export RS2=10.23.9.198</span><br><span class="line"></span><br><span class="line">ipvsadm -A -t $VIP:80 -s rr</span><br><span class="line">ipvsadm -a -t $VIP:80 -r $RS1:80 -i</span><br><span class="line">ipvsadm -a -t $VIP:80 -r $RS2:80 -i</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>RS</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">加载内部模块</span></span><br><span class="line">modprobe ipip</span><br><span class="line"></span><br><span class="line">export VIP=10.23.59.162</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将vip添加到ipip隧道网卡</span></span><br><span class="line">ip addr add $VIP dev tunl0</span><br><span class="line">ip link set tunl0 up</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改内核参数</span></span><br><span class="line">echo &quot;1&quot; &gt;/proc/sys/net/ipv4/conf/tunl0/arp_ignore</span><br><span class="line">echo &quot;2&quot; &gt;/proc/sys/net/ipv4/conf/tunl0/arp_announce</span><br><span class="line"></span><br><span class="line">echo &quot;1&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_ignore</span><br><span class="line">echo &quot;2&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_announce</span><br><span class="line"></span><br><span class="line">echo &quot;0&quot; &gt; /proc/sys/net/ipv4/conf/tunl0/rp_filter</span><br><span class="line">echo &quot;0&quot; &gt; /proc/sys/net/ipv4/conf/all/rp_filter</span><br></pre></td></tr></table></figure>
+
+<h6 id="IPIP流量分析"><a href="#IPIP流量分析" class="headerlink" title="IPIP流量分析"></a>IPIP流量分析</h6><p><img src="/../images/ipvs-ipip-1.png" alt="ipip"></p>
+<p><img src="/../images/ipvs-ipip-2.png" alt="ipip"></p>
+<p>由于实验环境在同一个网段所以需要对arp响应进行处理</p>
+<h4 id="内核参数"><a href="#内核参数" class="headerlink" title="内核参数"></a>内核参数</h4><p>内核参数的文档</p>
+<p><a target="_blank" rel="noopener" href="https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt">https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt</a></p>
+<h5 id="arp-ignore"><a href="#arp-ignore" class="headerlink" title="arp_ignore"></a>arp_ignore</h5><p>设置使用那个网卡的mac和ip用来请求arp,即arp请求的src_mac和src_ip</p>
+<ul>
+<li>0(默认):将任何网卡的地址响应出去，而不关系该ip是否在接受的网卡上</li>
+<li>1:只响应目标ip接受网卡的地址</li>
+<li>2:只响应目标ip接受网卡的地址，且需要在同网段</li>
+<li>3:请求的地址作用域为host的不响应，只有作用域为<code>global</code>和<code>link</code>的才响应</li>
+<li>4-7:保留</li>
+<li>8:任何arp都不响应</li>
+</ul>
+<p>在dr模式中每个rs上都配置了vip的地址如果不设置arp_ignore为1则会响应vip的arp请求使客户端的请求绕过了ds直接到了rs</p>
+<h5 id="arp-announce"><a href="#arp-announce" class="headerlink" title="arp_announce"></a>arp_announce</h5><p>设置使用那个网卡的mac和ip用来响应arp请求,既arp响应的dst_mac和dst_ip</p>
+<ul>
+<li>0:使用任何配置在本接口上的地址响应</li>
+<li>1:尽量避免使用不属于该发送网卡子网的本地地址作为发送arp请求的源IP地址</li>
+<li>2:忽略IP数据包的源IP地址，选择该发送网卡上最合适的本地地址作为arp请求的源IP地址</li>
+</ul>
+<h5 id="rp-filter"><a href="#rp-filter" class="headerlink" title="rp_filter"></a>rp_filter</h5><p>反向路径过滤</p>
+<ul>
+<li>0:不校验</li>
+<li>1(默认):严格的校验，每个数据包都进行校验，校验反向路径通过特定的接口是否是最佳路径，如不是则丢弃</li>
+<li>2:宽松模式。只校验通过任意接口是否可达，如果不通则丢弃</li>
+<li>取conf&#x2F;{all,interface}&#x2F;rp_filter中的最大值</li>
+</ul>
+<h4 id="负载均衡算法"><a href="#负载均衡算法" class="headerlink" title="负载均衡算法"></a>负载均衡算法</h4><ul>
+<li>rr（轮询）</li>
+<li>wrr（权重）</li>
+<li>lc（最后连接）</li>
+<li>wlc（权重）</li>
+<li>lblc（本地最后连接）</li>
+<li>lblcr（带复制的本地最后连接）</li>
+<li>dh（目的地址哈希）</li>
+<li>sh（源地址哈希）</li>
+<li>sed（最小期望延迟）</li>
+<li>nq（永不排队）</li>
+</ul>
+<h4 id="ipvsadm常用命令"><a href="#ipvsadm常用命令" class="headerlink" title="ipvsadm常用命令"></a>ipvsadm常用命令</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看规则</span></span><br><span class="line">ipvsadm -L</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看指定规则</span></span><br><span class="line">ipvsadm -L -t 10.0.0.1:80</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看链接</span></span><br><span class="line">ipvsadm -l -c</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">清理所有规则</span></span><br><span class="line">ipvsadm -c</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">清空计数器</span></span><br><span class="line">ipvsadm -Z</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加一个虚拟服务器，算法为轮询</span></span><br><span class="line">ipvsadm -A -t 10.0.0.1:80 -s rr</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除一个虚拟服务,同时删除RS</span></span><br><span class="line">ipvsadm -D -t 10.0.0.1:80</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改一个服务，将算法修改为wlc</span></span><br><span class="line">ipvsadm -E -t 10.0.0.1:80 -s wlc</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加一个RS,nat模式</span></span><br><span class="line">ipvsadm -a -t 10.0.0.1:80 -r 192.168.32.129:80 -m</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加一个RS,路由模式,权重为3</span></span><br><span class="line">ipvsadm -a -t 10.0.0.1:80 -r 192.168.32.129:80 -g -w 3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加一个RS,ipip隧道模式</span></span><br><span class="line">ipvsadm -a -t 10.0.0.1:80 -r 192.168.32.129:80 -i</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改rs 将此rs的模式改为ipip权重为2</span></span><br><span class="line">ipvsadm -e -t 10.0.0.1:80 -r 192.168.32.129:80 -i -w 2</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">删除一个RS</span></span><br><span class="line">ipvsadm -d -t 10.0.0.1:80 -r 192.168.32.129:80</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看转发情况</span></span><br><span class="line">ipvsadm -L -n -c</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">保存配置</span></span><br><span class="line">ipvsadm -S -n &gt;ipvs.conf</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">读取配置</span></span><br><span class="line">ipvsadm -R &lt; ipvs.conf</span><br></pre></td></tr></table></figure>
+
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/laolieren/p/lvs_explained.html">https://www.cnblogs.com/laolieren/p/lvs_explained.html</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/klb561/p/9215667.html">https://www.cnblogs.com/klb561/p/9215667.html</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/734640384fda">https://www.jianshu.com/p/734640384fda</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/f-ck-need-u/p/8472744.html">https://www.cnblogs.com/f-ck-need-u/p/8472744.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+              <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" rel="tag"># 负载均衡</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/11/%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/" rel="prev" title="测试工具">
+                  <i class="fa fa-angle-left"></i> 测试工具
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/12/12/%E4%BD%BF%E7%94%A8minio-operator%E9%83%A8%E7%BD%B2minio/" rel="next" title="使用minio-operator部署minio">
+                  使用minio-operator部署minio <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

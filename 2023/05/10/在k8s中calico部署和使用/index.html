@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="calico是k8s中常见的网络插件,非常灵活,支持ipip,vxlan隧道bgp路由以及ebpf,虚机k8s均可使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在k8s中calico部署和使用">
+<meta property="og:url" content="http://blog.naturelr.cc/2023/05/10/%E5%9C%A8k8s%E4%B8%ADcalico%E9%83%A8%E7%BD%B2%E5%92%8C%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="calico是k8s中常见的网络插件,非常灵活,支持ipip,vxlan隧道bgp路由以及ebpf,虚机k8s均可使用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico.svg">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-ipip-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-vxlan-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-bgp-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-bgp-2.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-bgp-4.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-bgp-5.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-ipip-2.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/calico-vxlan-2.png">
+<meta property="article:published_time" content="2023-05-10T08:41:00.000Z">
+<meta property="article:modified_time" content="2024-03-06T06:07:54.441Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="cni">
+<meta property="article:tag" content="网络">
+<meta property="article:tag" content="k8s">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.naturelr.cc/images/calico.svg">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2023/05/10/%E5%9C%A8k8s%E4%B8%ADcalico%E9%83%A8%E7%BD%B2%E5%92%8C%E4%BD%BF%E7%94%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2023/05/10/%E5%9C%A8k8s%E4%B8%ADcalico%E9%83%A8%E7%BD%B2%E5%92%8C%E4%BD%BF%E7%94%A8/","path":"2023/05/10/在k8s中calico部署和使用/","title":"在k8s中calico部署和使用"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>在k8s中calico部署和使用 | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9C%AF%E8%AF%AD"><span class="nav-number">1.1.</span> <span class="nav-text">术语</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#ippool"><span class="nav-number">1.1.1.</span> <span class="nav-text">ippool</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#ipamblocks"><span class="nav-number">1.1.2.</span> <span class="nav-text">ipamblocks</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2calico-cni"><span class="nav-number">2.</span> <span class="nav-text">部署calico cni</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85calicoctl"><span class="nav-number">3.</span> <span class="nav-text">安装calicoctl</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%94%A8%E5%AE%B9%E5%99%A8%E7%9A%84%E6%96%B9%E5%BC%8F%E8%BF%90%E8%A1%8Ccalicoctl"><span class="nav-number">3.1.</span> <span class="nav-text">用容器的方式运行calicoctl</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6"><span class="nav-number">3.2.</span> <span class="nav-text">二进制文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#kubectl%E6%8F%92%E4%BB%B6"><span class="nav-number">3.3.</span> <span class="nav-text">kubectl插件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#calicoctl%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-number">3.4.</span> <span class="nav-text">calicoctl常用命令</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPIP%E6%A8%A1%E5%BC%8F"><span class="nav-number">4.</span> <span class="nav-text">IPIP模式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#ipip%E8%B7%AF%E5%BE%84%E5%88%86%E6%9E%90"><span class="nav-number">4.1.</span> <span class="nav-text">ipip路径分析</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#ipip-pod%E5%88%B0pod%E6%89%80%E5%9C%A8%E7%9A%84node"><span class="nav-number">4.1.1.</span> <span class="nav-text">ipip-pod到pod所在的node</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#ipip-pod%E6%89%80%E5%9C%A8%E7%9A%84node%E5%88%B0%E7%9B%AE%E6%A0%87%E6%89%80%E5%9C%A8%E7%9A%84node%E7%9A%84pod"><span class="nav-number">4.1.2.</span> <span class="nav-text">ipip-pod所在的node到目标所在的node的pod</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2%E4%B8%AApod%E5%9C%A8%E5%90%8C%E4%B8%80%E4%B8%AAnode%E4%B8%8A"><span class="nav-number">4.1.3.</span> <span class="nav-text">2个pod在同一个node上</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">4.1.4.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VXLAN%E6%A8%A1%E5%BC%8F"><span class="nav-number">5.</span> <span class="nav-text">VXLAN模式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BC%80%E5%90%AFvxlan%E6%A8%A1%E5%BC%8F"><span class="nav-number">5.1.</span> <span class="nav-text">开启vxlan模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#vxlan%E8%B7%AF%E5%BE%84%E5%88%86%E6%9E%90"><span class="nav-number">5.2.</span> <span class="nav-text">vxlan路径分析</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#vxlan-pod%E5%88%B0node"><span class="nav-number">5.2.1.</span> <span class="nav-text">vxlan-pod到node</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#vxlan-pod%E5%88%B0%E5%8F%A6%E4%B8%80%E4%B8%AAnode%E7%9A%84pod"><span class="nav-number">5.2.2.</span> <span class="nav-text">vxlan-pod到另一个node的pod</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#vxlan-%E5%B0%8F%E7%BB%93"><span class="nav-number">5.3.</span> <span class="nav-text">vxlan-小结</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BGP%E6%A8%A1%E5%BC%8F-full-mesh"><span class="nav-number">6.</span> <span class="nav-text">BGP模式(full mesh)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BC%80%E5%90%AFBGP%E6%A8%A1%E5%BC%8F"><span class="nav-number">6.1.</span> <span class="nav-text">开启BGP模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#BGP%E6%A8%A1%E5%BC%8F%E8%B7%AF%E5%BE%84%E5%88%86%E6%9E%90"><span class="nav-number">6.2.</span> <span class="nav-text">BGP模式路径分析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#bgp%E5%B0%8F%E7%BB%93"><span class="nav-number">6.3.</span> <span class="nav-text">bgp小结</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BGP-RR%E6%A8%A1%E5%BC%8F-Route-reflectors"><span class="nav-number">7.</span> <span class="nav-text">BGP-RR模式(Route reflectors)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B7%AF%E7%94%B1%E5%8F%8D%E5%B0%84%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88"><span class="nav-number">7.1.</span> <span class="nav-text">路由反射部署方案</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A1%AE%E8%AE%A4%E7%8E%B0%E5%9C%A8%E7%9A%84%E4%B8%BAbgp%E7%9A%84mesh%E6%A8%A1%E5%BC%8F"><span class="nav-number">7.2.</span> <span class="nav-text">确认现在的为bgp的mesh模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8C%87%E5%AE%9A%E8%8A%82%E7%82%B9%E4%BD%9C%E4%B8%BA%E5%8F%8D%E5%B0%84%E5%99%A8"><span class="nav-number">7.3.</span> <span class="nav-text">指定节点作为反射器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEbgp%E5%AF%B9%E7%AD%89%E4%BD%93"><span class="nav-number">7.4.</span> <span class="nav-text">配置bgp对等体</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E8%8A%82%E7%82%B9bgp%E7%8A%B6%E6%80%81"><span class="nav-number">7.5.</span> <span class="nav-text">查看节点bgp状态</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#BGP-TOR%E8%B7%AF%E7%94%B1"><span class="nav-number">8.</span> <span class="nav-text">BGP-TOR路由</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IPIP-VXLAN%E8%B7%A8%E5%AD%90%E7%BD%91%E6%A8%A1%E5%BC%8F"><span class="nav-number">9.</span> <span class="nav-text">IPIP&#x2F;VXLAN跨子网模式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">9.1.</span> <span class="nav-text">环境说明</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IPIP"><span class="nav-number">9.2.</span> <span class="nav-text">IPIP</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#VXLAN"><span class="nav-number">9.3.</span> <span class="nav-text">VXLAN</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B7%A8%E5%AD%90%E7%BD%91bgp-full-mesh%E6%A8%A1%E5%BC%8F%E4%B8%8B%E8%B7%AF%E7%94%B1"><span class="nav-number">9.4.</span> <span class="nav-text">跨子网bgp full mesh模式下路由</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B0%86ipip%E5%92%8Cvxlan%E5%85%A8%E9%83%A8%E8%AE%BE%E7%BD%AE%E4%B8%BACrossSubnet"><span class="nav-number">9.5.</span> <span class="nav-text">将ipip和vxlan全部设置为CrossSubnet</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EBPF"><span class="nav-number">10.</span> <span class="nav-text">EBPF</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#EBPF%E9%83%A8%E7%BD%B2"><span class="nav-number">10.1.</span> <span class="nav-text">EBPF部署</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E9%AA%8C%E8%AF%81"><span class="nav-number">10.1.1.</span> <span class="nav-text">环境验证</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9api-server%E5%9C%B0%E5%9D%80"><span class="nav-number">10.1.2.</span> <span class="nav-text">修改api-server地址</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%BC%80%E5%90%AFebpf"><span class="nav-number">10.1.3.</span> <span class="nav-text">开启ebpf</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%BC%80%E5%90%AFdsr"><span class="nav-number">10.1.4.</span> <span class="nav-text">开启dsr</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IP%E5%9C%B0%E5%9D%80%E7%AE%A1%E7%90%86"><span class="nav-number">11.</span> <span class="nav-text">IP地址管理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%9D%99%E6%80%81ip"><span class="nav-number">11.1.</span> <span class="nav-text">静态ip</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E4%B8%8D%E4%BD%BF%E7%94%A8ipam%E9%87%8C%E9%9D%A2%E7%9A%84ip"><span class="nav-number">11.1.1.</span> <span class="nav-text">不使用ipam里面的ip</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Floating-IP-%E6%B5%AE%E5%8A%A8ip"><span class="nav-number">11.2.</span> <span class="nav-text">Floating IP(浮动ip)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IP%E9%A2%84%E7%95%99"><span class="nav-number">11.3.</span> <span class="nav-text">IP预留</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7"><span class="nav-number">11.4.</span> <span class="nav-text">优先级</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%A6%E5%AE%BD%E9%99%90%E5%88%B6"><span class="nav-number">12.</span> <span class="nav-text">带宽限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%87%E5%AE%9AMAC%E5%9C%B0%E5%9D%80"><span class="nav-number">13.</span> <span class="nav-text">指定MAC地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%80%E5%90%AFipv6%E6%94%AF%E6%8C%81"><span class="nav-number">14.</span> <span class="nav-text">开启ipv6支持</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9cni%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">14.1.</span> <span class="nav-text">修改cni配置文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9DS%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="nav-number">14.2.</span> <span class="nav-text">修改DS环境变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">15.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2023/05/10/%E5%9C%A8k8s%E4%B8%ADcalico%E9%83%A8%E7%BD%B2%E5%92%8C%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="在k8s中calico部署和使用 | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在k8s中calico部署和使用
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-10 16:41:00" itemprop="dateCreated datePublished" datetime="2023-05-10T16:41:00+08:00">2023-05-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-03-06 14:07:54" itemprop="dateModified" datetime="2024-03-06T14:07:54+08:00">2024-03-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><a target="_blank" rel="noopener" href="https://github.com/projectcalico/calico">calico</a>是k8s中常见的网络插件,非常灵活,支持ipip,vxlan隧道bgp路由以及ebpf,虚机k8s均可使用</p>
+<span id="more"></span>
+
+<h4 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h4><p><img src="/../images/calico.svg" alt="calico"></p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>felix</td>
+<td>状态报告，路由规划，接口管理，acl</td>
+</tr>
+<tr>
+<td>bird</td>
+<td>负责路由宣告，以及路由反射</td>
+</tr>
+<tr>
+<td>confd</td>
+<td>监控bgp变更，配置和更新bird的配置</td>
+</tr>
+<tr>
+<td>储存插件</td>
+<td>存储配置,有etcd和k8s两种选择</td>
+</tr>
+<tr>
+<td>CNI插件</td>
+<td>为pod配置网络</td>
+</tr>
+<tr>
+<td>typha</td>
+<td>为confd和felix和后端存储之间提供缓存等增加性能服务</td>
+</tr>
+<tr>
+<td>calicoctl</td>
+<td>命令行工具</td>
+</tr>
+<tr>
+<td>dikastes</td>
+<td>配合istio</td>
+</tr>
+</tbody></table>
+<h5 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h5><h6 id="ippool"><a href="#ippool" class="headerlink" title="ippool"></a>ippool</h6><ul>
+<li>ip池子,默认calico将会从池子中分配给podip</li>
+</ul>
+<h6 id="ipamblocks"><a href="#ipamblocks" class="headerlink" title="ipamblocks"></a>ipamblocks</h6><ul>
+<li>从ippool里分割出来的ip段，为了减少路由数量，calico宣告路由时是以块为单位在pod所在的节点进行宣告的</li>
+</ul>
+<h4 id="部署calico-cni"><a href="#部署calico-cni" class="headerlink" title="部署calico cni"></a>部署calico cni</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/calico.yaml -O</span><br><span class="line"></span><br><span class="line">kubectl apply -f calico.yaml</span><br></pre></td></tr></table></figure>
+
+<h4 id="安装calicoctl"><a href="#安装calicoctl" class="headerlink" title="安装calicoctl"></a>安装calicoctl</h4><ul>
+<li>calicoctl使用calic的命令行客户端攻击可以用来查看一些信息，有三种安装方法选一种即可</li>
+</ul>
+<h5 id="用容器的方式运行calicoctl"><a href="#用容器的方式运行calicoctl" class="headerlink" title="用容器的方式运行calicoctl"></a>用容器的方式运行calicoctl</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/calicoctl.yaml -o calicoctl.yaml</span><br><span class="line"></span><br><span class="line">kubectl apply -f calicoctl.yaml</span><br><span class="line"></span><br><span class="line">echo alias calicoctl=&quot;kubectl exec -i -n kube-system calicoctl -- /calicoctl&quot;</span><br></pre></td></tr></table></figure>
+
+<p>使用方法:<code>calicoctl version</code></p>
+<h5 id="二进制文件"><a href="#二进制文件" class="headerlink" title="二进制文件"></a>二进制文件</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://github.com/projectcalico/calico/releases/latest/download/calicoctl-linux-amd64 -o calicoctl</span><br><span class="line"></span><br><span class="line">chmod +x calicoctl</span><br><span class="line">mv calicoctl /usr/local/bin/</span><br></pre></td></tr></table></figure>
+
+<p>使用方法:<code>calicoctl version</code></p>
+<h5 id="kubectl插件"><a href="#kubectl插件" class="headerlink" title="kubectl插件"></a>kubectl插件</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://github.com/projectcalico/calico/releases/latest/download/calicoctl-linux-amd64 -o kubectl-calico</span><br><span class="line">chmod +x kubectl-calico</span><br><span class="line">mv kubectl-calico /usr/local/bin/</span><br></pre></td></tr></table></figure>
+
+<p>使用方法: <code>kubectl calico version</code></p>
+<h5 id="calicoctl常用命令"><a href="#calicoctl常用命令" class="headerlink" title="calicoctl常用命令"></a>calicoctl常用命令</h5><ul>
+<li>查看ipam分配情况</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">calicoctl ipam show</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">+----------+---------------+-----------+------------+--------------+</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">| GROUPING |     CIDR      | IPS TOTAL | IPS IN USE |   IPS FREE   |</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">+----------+---------------+-----------+------------+--------------+</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">| IP Pool  | 10.244.0.0/16 |     65536 | 10 (0%)    | 65526 (100%) |</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">+----------+---------------+-----------+------------+--------------+</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看blocks分配情况</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">calicoctl ipam show --show-blocks</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">+----------+-------------------+-----------+------------+--------------+</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">| GROUPING |       CIDR        | IPS TOTAL | IPS IN USE |   IPS FREE   |</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">+----------+-------------------+-----------+------------+--------------+</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">| IP Pool  | 10.244.0.0/16     |     65536 | 10 (0%)    | 65526 (100%) |</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">| Block    | 10.244.120.64/26  |        64 | 5 (8%)     | 59 (92%)     |</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">| Block    | 10.244.205.192/26 |        64 | 5 (8%)     | 59 (92%)     |</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">+----------+-------------------+-----------+------------+--------------+</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看ippool</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">calicoctl get ippool -o wide</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME                  CIDR            NAT    IPIPMODE   VXLANMODE   DISABLED   DISABLEBGPEXPORT   SELECTOR</span>   </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default-ipv4-ippool   10.244.0.0/16   <span class="literal">true</span>   Always     Never       <span class="literal">false</span>      <span class="literal">false</span>              all()</span> </span><br></pre></td></tr></table></figure>
+
+<h4 id="IPIP模式"><a href="#IPIP模式" class="headerlink" title="IPIP模式"></a>IPIP模式</h4><p>calico的网络模式<code>默认</code>是IPIP模式</p>
+<ul>
+<li>通过calicoctl查看ippool的<code>IPIPMODE</code>字段，如下</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">calicoctl get ippool -o wide</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME                  CIDR               NAT     IPIPMODE   VXLANMODE   DISABLED   DISABLEBGPEXPORT   SELECTOR</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default-ipv4-ippool   10.244.0.0/16      <span class="literal">true</span>    Always      Never       <span class="literal">false</span>      <span class="literal">false</span>              all()</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>启动ipipmode分为两种，一种是<code>Always</code>，还有一种<code>CrossSubnet</code><ul>
+<li>always，无论是否跨子网都通过ipip来通讯</li>
+<li>CrossSubnet，只有在跨子网时使用ipip模式</li>
+<li>Never,关闭从不使用ipip模式</li>
+</ul>
+</li>
+</ul>
+<h5 id="ipip路径分析"><a href="#ipip路径分析" class="headerlink" title="ipip路径分析"></a>ipip路径分析</h5><ul>
+<li>部署一个nginx</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">k get po -l app=nginx -o wide          </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME                     READY   STATUS    RESTARTS   AGE     IP               NODE           NOMINATED NODE   READINESS GATES</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">nginx-7fc57c59f7-4nxhh   1/1     Running   0          6m30s   10.244.120.68    minikube       &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">nginx-7fc57c59f7-hf2g6   1/1     Running   0          6m43s   10.244.205.195   minikube-m02   &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">nginx-7fc57c59f7-rcdtw   1/1     Running   0          6m30s   10.244.205.196   minikube-m02   &lt;none&gt;           &lt;none&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>进入一个nginx的pod去ping另一个容器</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl exec -it nginx-7fc57c59f7-4nxhh -- ping 10.244.205.195</span><br></pre></td></tr></table></figure>
+
+<h6 id="ipip-pod到pod所在的node"><a href="#ipip-pod到pod所在的node" class="headerlink" title="ipip-pod到pod所在的node"></a>ipip-pod到pod所在的node</h6><ul>
+<li>查看容器的网卡和路由信息</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">kubectl exec -it nginx-7fc57c59f7-4nxhh -- sh -c &quot;ip addr;ip r&quot;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN qlen 1000</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet 127.0.0.1/8 scope host lo</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">       valid_lft forever preferred_lft forever</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">2: tunl0@NONE: &lt;NOARP&gt; mtu 1480 qdisc noop state DOWN qlen 1000</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ipip 0.0.0.0 brd 0.0.0.0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">3: ip6tnl0@NONE: &lt;NOARP&gt; mtu 1452 qdisc noop state DOWN qlen 1000</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/tunnel6 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00 brd 00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">5: eth0@if10: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 65515 qdisc noqueue state UP</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ether fe:bb:51:af:03:a8 brd ff:ff:ff:ff:ff:ff</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet 10.244.120.68/32 scope global eth0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">       valid_lft forever preferred_lft forever</span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default via 169.254.1.1 dev eth0</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">169.254.1.1 dev eth0 scope <span class="built_in">link</span></span> </span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>从上面的信息比较难以理解的是路由的网关是169.254.1.1，169.254.0.0&#x2F;16为保留地址一般用于dhcp获取，而calico则将容器的默认路由设置为此,当容器发现目标地址不是本ip段时，会将流量发送给网关，这时需要知道网关的mac地址<br>这里calico将网关设置为169.254.1.1而没有任何一个网卡是169.254.1.1,其实是因为开了arp_proxy代答,具体使用了pod的veth的外面的网卡,这样流量就通过二层到达主机<br>官方的<a target="_blank" rel="noopener" href="https://docs.tigera.io/calico/latest/reference/faq#why-cant-i-see-the-16925411-address-mentioned-above-on-my-host">FAQ</a></p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i cali1143a22bb0c host 10.244.120.68 -ennnvv</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">...</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:21:15.764922 fe:bb:51:af:03:a8 &gt; ee:ee:ee:ee:ee:ee, ethertype ARP (0x0806), length 42: Ethernet (len 6), IPv4 (len 4), Request who-has 169.254.1.1 tell 10.244.120.68, length 28</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:21:15.764944 ee:ee:ee:ee:ee:ee &gt; fe:bb:51:af:03:a8, ethertype ARP (0x0806), length 42: Ethernet (len 6), IPv4 (len 4), Reply 169.254.1.1 is-at ee:ee:ee:ee:ee:ee, length 28</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">...</span></span><br><span class="line"></span><br><span class="line">cat /proc/sys/net/ipv4/conf/cali1143a22bb0c/proxy_arp</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">1</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>veth抓包</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> tcpdump -i cali1143a22bb0c  host 10.244.120.68 -ennnvv</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">tcpdump: listening on cali1143a22bb0c, link-type EN10MB (Ethernet), capture size 262144 bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:39:53.417261 fe:bb:51:af:03:a8 &gt; ee:ee:ee:ee:ee:ee, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 64, <span class="built_in">id</span> 37455, offset 0, flags [DF], proto ICMP (1), length 84)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 12, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:39:53.417585 ee:ee:ee:ee:ee:ee &gt; fe:bb:51:af:03:a8, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 62, <span class="built_in">id</span> 24660, offset 0, flags [none], proto ICMP (1), length 84)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 12, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:39:54.417872 fe:bb:51:af:03:a8 &gt; ee:ee:ee:ee:ee:ee, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 64, <span class="built_in">id</span> 38148, offset 0, flags [DF], proto ICMP (1), length 84)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 13, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:39:54.418089 ee:ee:ee:ee:ee:ee &gt; fe:bb:51:af:03:a8, ethertype IPv4 (0x0800), length 98: (tos 0x0, ttl 62, <span class="built_in">id</span> 24786, offset 0, flags [none], proto ICMP (1), length 84)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 13, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">...</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="ipip-pod所在的node到目标所在的node的pod"><a href="#ipip-pod所在的node到目标所在的node的pod" class="headerlink" title="ipip-pod所在的node到目标所在的node的pod"></a>ipip-pod所在的node到目标所在的node的pod</h6><ul>
+<li>查看minikube上的路由</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ip r</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default via 192.168.49.1 dev eth0</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">blackhole 10.244.120.64/26 proto bird</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.65 dev califc4f8273134 scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.66 dev cali54e305c20b5 scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.67 dev cali00c313c8253 scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.68 dev cali1143a22bb0c scope <span class="built_in">link</span>  <span class="comment"># 这个就是我们进行ping的pod的路由</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.205.192/26 via 192.168.49.3 dev tunl0 proto bird onlink  <span class="comment"># 这个是minikube-m02这个节点上的路由，如果要访问minikube-m02上的pod则经过本路由</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">172.17.0.0/16 dev docker0 proto kernel scope <span class="built_in">link</span> src 172.17.0.1 linkdown</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">192.168.49.0/24 dev eth0 proto kernel scope <span class="built_in">link</span> src 192.168.49.2</span> </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>隧道抓包</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i tunl0 host 10.244.120.68 -ennnvv</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">tcpdump: listening on tunl0, link-type RAW (Raw IP), capture size 262144 bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:40:55.459832 ip: (tos 0x0, ttl 63, <span class="built_in">id</span> 114, offset 0, flags [DF], proto ICMP (1), length 84) 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 74, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:40:55.460009 ip: (tos 0x0, ttl 63, <span class="built_in">id</span> 58352, offset 0, flags [none], proto ICMP (1), length 84) 10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 74, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:40:56.460530 ip: (tos 0x0, ttl 63, <span class="built_in">id</span> 495, offset 0, flags [DF], proto ICMP (1), length 84) 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 75, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:40:56.460780 ip: (tos 0x0, ttl 63, <span class="built_in">id</span> 59235, offset 0, flags [none], proto ICMP (1), length 84) 10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 75, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:40:57.461367 ip: (tos 0x0, ttl 63, <span class="built_in">id</span> 979, offset 0, flags [DF], proto ICMP (1), length 84) 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 76, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:40:57.461510 ip: (tos 0x0, ttl 63, <span class="built_in">id</span> 59858, offset 0, flags [none], proto ICMP (1), length 84) 10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 15617, <span class="built_in">seq</span> 76, length 64</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>到此pod的流量通过ipip封装发送到目标pod所在的node上,目标node将ipip包解封包，然后查找路由表发送到目标pod的veth网卡中</p>
+</li>
+<li><p>登录另一个node</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">minikube ssh --node=&quot;minikube-m02&quot;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Last login: Tue May 16 10:37:54 2023 from 192.168.49.1</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">docker@minikube-m02:~$</span> </span><br><span class="line">sudo su</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过ip找到对应的网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip r |grep 10.244.205.195</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.205.195 dev cali614e1c7b24e scope <span class="built_in">link</span></span> </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>抓包对应的网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i cali614e1c7b24e </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">listening on cali614e1c7b24e, link-type EN10MB (Ethernet), capture size 262144 bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:50:48.678597 IP 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 88, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:50:48.678615 IP 10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 88, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:50:49.678987 IP 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 89, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:50:49.679010 IP 10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 89, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:50:50.680533 IP 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 90, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:50:50.680595 IP 10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 90, length 64</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>抓包ipip隧道网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i tunl0 </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">listening on tunl0, link-type RAW (Raw IP), capture size 262144 bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:51:06.694392 IP 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 106, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:51:06.694504 IP 10.244.205.195 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 106, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:51:07.695538 IP 10.244.120.68 &gt; 10.244.205.195: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 21761, <span class="built_in">seq</span> 107, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">...</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过以上抓包可以确定流量的路径</li>
+</ul>
+<h6 id="2个pod在同一个node上"><a href="#2个pod在同一个node上" class="headerlink" title="2个pod在同一个node上"></a>2个pod在同一个node上</h6><ul>
+<li><p>当目标pod和源pod在同一个node上执行通过node上的路由到对应的veth网卡,不经过隧道</p>
+</li>
+<li><p>这次ping一个在相同node上的pod的ip</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">kubectl get po whoami-7c88bd4c6f-7tc5b -o wide                   </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME                      READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">whoami-7c88bd4c6f-7tc5b   1/1     Running   0          3h18m   10.244.120.67   minikube   &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line"></span><br><span class="line">kubectl exec -it nginx-7fc57c59f7-4nxhh -- ping 10.244.120.67</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">PING 10.244.120.67 (10.244.120.67): 56 data bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">PING 10.244.120.67 (10.244.120.67): 56 data bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">64 bytes from 10.244.120.67: <span class="built_in">seq</span>=0 ttl=63 time=1.777 ms</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">64 bytes from 10.244.120.67: <span class="built_in">seq</span>=1 ttl=63 time=0.542 ms</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">64 bytes from 10.244.120.67: <span class="built_in">seq</span>=2 ttl=63 time=0.132 ms</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">...</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>直接抓包隧道发现没有流量</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">minikube ssh </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Last login: Tue May 16 10:41:40 2023 from 192.168.49.1</span></span><br><span class="line">sudo su</span><br><span class="line">tcpdump -i tunl0</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">listening on tunl0, link-type RAW (Raw IP), capture size 262144 bytes</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过路由表找到对应的网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip r |grep 10.244.120.67</span><br><span class="line">10.244.120.67 dev cali00c313c8253 scope link </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>抓包目标的网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i cali00c313c8253</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">listening on cali00c313c8253, link-type EN10MB (Ethernet), capture size 262144 bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:47:39.884507 IP 10.244.120.68 &gt; 10.244.120.67: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 19969, <span class="built_in">seq</span> 141, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:47:39.884649 IP 10.244.120.67 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 19969, <span class="built_in">seq</span> 141, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10:47:40.885829 IP 10.244.120.68 &gt; 10.244.120.67: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 19969, <span class="built_in">seq</span> 142, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">...</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过以上抓包可以发现并没有经过隧道，而是直接路由到了目标的网卡</li>
+</ul>
+<h6 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h6><p><img src="/../images/calico-ipip-1.png" alt="calico-ipip"></p>
+<h4 id="VXLAN模式"><a href="#VXLAN模式" class="headerlink" title="VXLAN模式"></a>VXLAN模式</h4><h5 id="开启vxlan模式"><a href="#开启vxlan模式" class="headerlink" title="开启vxlan模式"></a>开启vxlan模式</h5><ul>
+<li><p>修改ippool中<code>VXLANMODE</code>字段为<code>Always</code>,<code>IPIPMODE</code>改为<code>Never</code>,其中<code>VXLANMODE</code>中的也有<code>CrossSubnet</code>只在跨子网时使用</p>
+</li>
+<li><p>修改calico-node的环境变量</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改环境变量</span></span><br><span class="line">kubectl -n kube-system set env ds/calico-node -c calico-node CALICO_IPV4POOL_IPIP=Never</span><br><span class="line">kubectl -n kube-system set env ds/calico-node -c calico-node CALICO_IPV4POOL_VXLAN=Always</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>关闭关闭bird</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将calico_backend修改为vxlan</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">calico_backend: vxlan</span></span><br><span class="line">kubectl edit cm -nkube-system calico-config</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>关闭bird的健康检查</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system edit ds calico-node</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">livenessProbe:</span></span><br><span class="line">  <span class="attr">exec:</span></span><br><span class="line">    <span class="attr">command:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">/bin/calico-node</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">-felix-live</span></span><br><span class="line">   <span class="comment"># - -bird-live</span></span><br><span class="line"><span class="attr">readinessProbe:</span></span><br><span class="line">  <span class="attr">exec:</span></span><br><span class="line">    <span class="attr">command:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">/bin/calico-node</span></span><br><span class="line">    <span class="comment"># - -bird-ready</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">-felix-ready</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="vxlan路径分析"><a href="#vxlan路径分析" class="headerlink" title="vxlan路径分析"></a>vxlan路径分析</h5><ul>
+<li><p>依然使用之前的nginx来做测试</p>
+</li>
+<li><p>节点路由</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ip r</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default via 192.168.49.1 dev eth0</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.0.192/26 via 10.244.0.192 dev vxlan.calico onlink</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">blackhole 10.244.120.64/26 proto 80</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.65 dev califc4f8273134 scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.66 dev cali54e305c20b5 scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.68 dev cali1143a22bb0c scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.205.192/26 via 10.244.0.192 dev vxlan.calico onlink  之前是ipip的tunl0网卡变更为vxlan的网卡</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">172.17.0.0/16 dev docker0 proto kernel scope <span class="built_in">link</span> src 172.17.0.1 linkdown</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">192.168.49.0/24 dev eth0 proto kernel scope <span class="built_in">link</span> src 192.168.49.2</span> </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看vxlan.calico网卡信息</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ip -s  addr show vxlan.calico</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">863: vxlan.calico: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 65485 qdisc noqueue state UNKNOWN group default</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">   <span class="built_in">link</span>/ether 66:66:b0:7b:5c:e1 brd ff:ff:ff:ff:ff:ff</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">   inet 10.244.120.70/32 scope global vxlan.calico</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">      valid_lft forever preferred_lft forever</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">   RX: bytes  packets  errors  dropped overrun mcast</span>   </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">   23094      267      0       0       0       0</span>       </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">   TX: bytes  packets  errors  dropped carrier collsns</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">   22374      268      0       0       0       0</span>       </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>搜下这个ip发现他作用为vxlan的网卡ip</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">calicoctl ipam show --ip=10.244.120.70</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">IP 10.244.120.70 is <span class="keyword">in</span> use</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Attributes:</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash"> node: minikube</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash"> <span class="built_in">type</span>: vxlanTunnelAddress</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="vxlan-pod到node"><a href="#vxlan-pod到node" class="headerlink" title="vxlan-pod到node"></a>vxlan-pod到node</h6><ul>
+<li>从上面的网卡和路由信息可以看到calico只是修改了到其他节点pod的通讯方式，从ipip隧道改为vlxan隧道然后修改路由</li>
+<li>所以后pod到node的方式其实没有变化和<a href="#ipip-pod%E5%88%B0pod%E6%89%80%E5%9C%A8%E7%9A%84node">ipip</a>模式是一样的</li>
+</ul>
+<h6 id="vxlan-pod到另一个node的pod"><a href="#vxlan-pod到另一个node的pod" class="headerlink" title="vxlan-pod到另一个node的pod"></a>vxlan-pod到另一个node的pod</h6><ul>
+<li><p>依然开始长ping</p>
+</li>
+<li><p>抓包vxlan网卡</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">tcpdump -i vxlan.calico -eenn</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">tcpdump: verbose output suppressed, use -v or -vv <span class="keyword">for</span> full protocol decode</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">listening on vxlan.calico, link-type EN10MB (Ethernet), capture size 262144 bytes</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:22:33.108257 66:66:b0:7b:5c:e1 &gt; 66:9f:82:63:75:c1, ethertype IPv4 (0x0800), length 98: 10.244.120.68 &gt; 10.244.205.196: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 30721, <span class="built_in">seq</span> 33, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:22:33.108388 66:9f:82:63:75:c1 &gt; 66:66:b0:7b:5c:e1, ethertype IPv4 (0x0800), length 98: 10.244.205.196 &gt; 10.244.120.68: ICMP <span class="built_in">echo</span> reply, <span class="built_in">id</span> 30721, <span class="built_in">seq</span> 33, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">09:22:34.109579 66:66:b0:7b:5c:e1 &gt; 66:9f:82:63:75:c1, ethertype IPv4 (0x0800), length 98: 10.244.120.68 &gt; 10.244.205.196: ICMP <span class="built_in">echo</span> request, <span class="built_in">id</span> 30721, <span class="built_in">seq</span> 34, length 64</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">...</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>可以看到到vxlan网卡有我们长ping的数据包，可以确定不同node上的pod是通过vxlan来通讯</li>
+<li><code>66:66:b0:7b:5c:e1</code>为源头pod所在node的vxlan网卡mac</li>
+<li><code>66:9f:82:63:75:c1</code>为目标pod所在node的vxlan网卡mac</li>
+</ul>
+<h5 id="vxlan-小结"><a href="#vxlan-小结" class="headerlink" title="vxlan-小结"></a>vxlan-小结</h5><ul>
+<li>vxlan模式下知识变换了从一个node到另一个node的方式，从之前的ipip变为vxlan</li>
+<li>pod到node没有变化</li>
+</ul>
+<p><img src="/../images/calico-vxlan-1.png" alt="calico-ipip"></p>
+<h4 id="BGP模式-full-mesh"><a href="#BGP模式-full-mesh" class="headerlink" title="BGP模式(full mesh)"></a>BGP模式(full mesh)</h4><blockquote>
+<p>BGP是一个使用广泛的路由协议，分为2种一种是不同as号的ebgp已经同as号的ibgp，这里使用的是ibgp</p>
+</blockquote>
+<div class="note warning"><p>注意此模式节点只能在同一个子网中进行，如果节点不在同一个子网请参与<a href="#%E8%B7%A8"></a></p>
+</div>
+
+<h5 id="开启BGP模式"><a href="#开启BGP模式" class="headerlink" title="开启BGP模式"></a>开启BGP模式</h5><blockquote>
+<p>开启bgp模式基本思路就是将<code>ipip</code>和<code>vxlan</code>模式都给关闭了</p>
+</blockquote>
+<ul>
+<li><p>修改ippool中<code>VXLANMODE</code>字段为<code>Never</code>,<code>IPIPMODE</code>改为<code>Never</code></p>
+</li>
+<li><p>修改calico-node的环境变量</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改环境变量</span></span><br><span class="line">kubectl -n kube-system set env ds/calico-node -c calico-node CALICO_IPV4POOL_IPIP=Never</span><br><span class="line">kubectl -n kube-system set env ds/calico-node -c calico-node CALICO_IPV4POOL_VXLAN=Never</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果关闭bird需要开启bird</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将calico_backend修改为bird</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">calico_backend: bird</span></span><br><span class="line">kubectl edit cm -nkube-system calico-config</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果关闭了bird的健康检查则需要开启bird的健康检查</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system edit ds calico-node</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">livenessProbe:</span></span><br><span class="line">  <span class="attr">exec:</span></span><br><span class="line">    <span class="attr">command:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">/bin/calico-node</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">-felix-live</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">-bird-live</span> <span class="comment"># 打开</span></span><br><span class="line"><span class="attr">readinessProbe:</span></span><br><span class="line">  <span class="attr">exec:</span></span><br><span class="line">    <span class="attr">command:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">/bin/calico-node</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">-felix-ready</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">-bird-ready</span> <span class="comment"># 打开</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="BGP模式路径分析"><a href="#BGP模式路径分析" class="headerlink" title="BGP模式路径分析"></a>BGP模式路径分析</h5><ul>
+<li>查看路由,可以发现跨节点通讯使用路由</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ip r </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default via 192.168.49.1 dev eth0</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.0.192/26 via 192.168.49.3 dev eth0 proto bird</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">blackhole 10.244.120.64/26 proto bird</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.65 dev califc4f8273134 scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.66 dev cali54e305c20b5 scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.68 dev cali1143a22bb0c scope <span class="built_in">link</span></span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.205.192/26 via 192.168.49.3 dev eth0 proto bird <span class="comment"># 这里已经变成了bird了</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">172.17.0.0/16 dev docker0 proto kernel scope <span class="built_in">link</span> src 172.17.0.1 linkdown</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">192.168.49.0/24 dev eth0 proto kernel scope <span class="built_in">link</span> src 192.168.49.2</span> </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看网卡,可以发现没有vxlan的网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">ip addr</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet 127.0.0.1/8 scope host lo</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">       valid_lft forever preferred_lft forever</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">2: tunl0@NONE: &lt;NOARP,UP,LOWER_UP&gt; mtu 65515 qdisc noqueue state UNKNOWN group default qlen 1000</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ipip 0.0.0.0 brd 0.0.0.0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">3: ip6tnl0@NONE: &lt;NOARP&gt; mtu 1452 qdisc noop state DOWN group default qlen 1000</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/tunnel6 :: brd ::</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">4: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN group default</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ether 02:42:7a:58:36:29 brd ff:ff:ff:ff:ff:ff</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">       valid_lft forever preferred_lft forever</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">5: califc4f8273134@if5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid 1</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">6: cali54e305c20b5@if5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid 2</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10: cali1143a22bb0c@if5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 65515 qdisc noqueue state UP group default</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid 4</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">16: eth0@if17: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 65535 qdisc noqueue state UP group default</span> </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ether 02:42:c0:a8:31:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet 192.168.49.2/24 brd 192.168.49.255 scope global eth0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">       valid_lft forever preferred_lft forever</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过birdcl查看路由表</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system exec -it calico-node-9pwnj -c calico-node -- /bin/bash</span><br><span class="line"></span><br><span class="line">birdcl</span><br><span class="line">show route</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">bird&gt; show route</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">0.0.0.0/0          via 192.168.49.1 on eth0 [kernel1 07:27:41] * (10)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.205.192/26  via 192.168.49.3 on eth0 [Mesh_192_168_49_3 07:27:41] * (100/0) [i]</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">192.168.49.0/24    dev eth0 [direct1 07:27:40] * (240)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.64/26   blackhole [static1 07:27:40] * (200)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.65/32   dev califc4f8273134 [kernel1 07:27:41] * (10)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.66/32   dev cali54e305c20b5 [kernel1 07:27:41] * (10)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.120.68/32   dev cali1143a22bb0c [kernel1 07:27:41] * (10)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.0.192/26    via 192.168.49.3 on eth0 [Mesh_192_168_49_3 07:27:41] * (100/0) [i]</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">172.17.0.0/16      dev docker0 [direct1 07:27:40] * (240)</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">bird&gt;</span> </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过birdcl查bgp邻居状态</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">birdcl show protocols</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">root@minikube /]<span class="comment"># birdcl  show protocols</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">BIRD v0.3.3+birdv1.6.8 ready.</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">name     proto    table    state  since       info</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">static1  Static   master   up     07:27:40</span>    </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">kernel1  Kernel   master   up     07:27:40</span>    </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">device1  Device   master   up     07:27:40</span>    </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">direct1  Direct   master   up     07:27:40</span>    </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Mesh_192_168_49_3 BGP      master   up     07:27:53    Established  bgp邻居状态</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看bgp详细信息</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">birdcl show protocols all Mesh_192_168_49_2</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">root@minikube-m02 /]<span class="comment"># birdcl show protocols all Mesh_192_168_49_2</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">BIRD v0.3.3+birdv1.6.8 ready.</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">name     proto    table    state  since       info</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Mesh_192_168_49_2 BGP      master   up     07:27:53    Established</span>   </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">  Description:    Connection to BGP peer</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">  Preference:     100</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">  Input filter:   ACCEPT</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">  Output filter:  calico_export_to_bgp_peers</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">  Routes:         1 imported, 2 exported, 1 preferred</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">  Route change stats:     received   rejected   filtered    ignored   accepted</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Import updates:              4          0          0          0          4</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Import withdraws:            3          0        ---          0          3</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Export updates:             17          4          8        ---          5</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Export withdraws:            8        ---        ---        ---          3</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">  BGP state:          Established</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Neighbor address: 192.168.49.2</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Neighbor AS:      64512</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Neighbor ID:      192.168.49.2</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Neighbor caps:    refresh enhanced-refresh restart-able llgr-aware AS4 add-path-rx add-path-tx</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Session:          internal multihop AS4 add-path-rx add-path-tx</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Source address:   192.168.49.3</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Hold timer:       157/240</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    Keepalive timer:  67/80</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>总体而言比较简单，直接通过路由到目标pod对应的节点</li>
+</ul>
+<h5 id="bgp小结"><a href="#bgp小结" class="headerlink" title="bgp小结"></a>bgp小结</h5><ul>
+<li>每个节点之间通过bgp宣告路由</li>
+</ul>
+<p><img src="/../images/calico-bgp-1.png" alt="calico-bgp"></p>
+<p><img src="/../images/calico-bgp-2.png" alt="calico-bgp"></p>
+<h4 id="BGP-RR模式-Route-reflectors"><a href="#BGP-RR模式-Route-reflectors" class="headerlink" title="BGP-RR模式(Route reflectors)"></a>BGP-RR模式(Route reflectors)</h4><p><img src="/../images/calico-bgp-4.png" alt="calico-bgp"></p>
+<ul>
+<li>从节点中选取一部分节点作为bgp路由反射器以减少bgp对等体数量</li>
+</ul>
+<h5 id="路由反射部署方案"><a href="#路由反射部署方案" class="headerlink" title="路由反射部署方案"></a>路由反射部署方案</h5><blockquote>
+<p>测试环境为4个节点的minikube集群</p>
+</blockquote>
+<ul>
+<li><p>部署路由反射器有很多方法:</p>
+<ul>
+<li><ol>
+<li>在集群外的机器中部署bird</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>在k8s中选择专门的节点</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>部署专门的calico-node容器作为反射器</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p>很显然直接在集群中部署专门的节点作为反射器比较方便且容易管理</p>
+</li>
+<li><p>选择2个节点作为反射器，这里我选择后2个</p>
+</li>
+</ul>
+<h5 id="确认现在的为bgp的mesh模式"><a href="#确认现在的为bgp的mesh模式" class="headerlink" title="确认现在的为bgp的mesh模式"></a>确认现在的为bgp的mesh模式</h5><div class="note warning"><p>需要注意<code>calicoctl node status</code>这个需要再部署calico的节点上执行。。。。有点唐突</p>
+</div>
+
+<ul>
+<li>查看当前bgp邻居,可以发现已经与另外三个节点建立了邻居关系</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">calicoctl node status</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">root@minikube:~<span class="comment"># calicoctl node status</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Calico process is running.</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash"></span></span><br><span class="line"><span class="language-bash"><span class="comment"># IPv4 BGP status</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">+--------------+-------------------+-------+----------+-------------+</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">| PEER ADDRESS |     PEER TYPE     | STATE |  SINCE   |    INFO     |</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">+--------------+-------------------+-------+----------+-------------+</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">| 192.168.49.3 | node-to-node mesh | up    | 18:13:08 | Established |</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">| 192.168.49.4 | node-to-node mesh | up    | 19:37:12 | Established |</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">| 192.168.49.5 | node-to-node mesh | up    | 02:27:27 | Established |</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">+--------------+-------------------+-------+----------+-------------+</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">calicoctl get nodes -o wide </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME           ASN       IPV4              IPV6</span>   </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">minikube       (64512)   192.168.49.2/24</span>          </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">minikube-m02   (64512)   192.168.49.3/24</span>          </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">minikube-m03   (64512)   192.168.49.4/24   <span class="comment"># 作为反射器</span></span>       </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">minikube-m04   (64512)   192.168.49.5/24   <span class="comment"># 作为反射器</span></span></span><br></pre></td></tr></table></figure>
+
+<h5 id="指定节点作为反射器"><a href="#指定节点作为反射器" class="headerlink" title="指定节点作为反射器"></a>指定节点作为反射器</h5><ul>
+<li>导出<code>calico/node</code>资源</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">calicoctl get nodes minikube-m03 -o yaml &gt; minikube-m03.yaml</span><br><span class="line">calicoctl get nodes minikube-m04 -o yaml &gt; minikube-m04.yaml</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在导出的文件中添加下面的字段</li>
+</ul>
+<blockquote>
+<p>routeReflectorClusterID应该是为了防止路由环路</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ...</span></span><br><span class="line">  <span class="attr">bgp:</span></span><br><span class="line">    <span class="attr">ipv4Address:</span> <span class="number">192.168</span><span class="number">.49</span><span class="number">.4</span><span class="string">/24</span></span><br><span class="line">    <span class="attr">routeReflectorClusterID:</span> <span class="number">1.0</span><span class="number">.0</span><span class="number">.1</span></span><br><span class="line"><span class="comment"># ...</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>应用修改</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">calicoctl replace -f minikube-m03.yaml</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Successfully replaced 1 <span class="string">&#x27;Node&#x27;</span> resource(s)</span></span><br><span class="line">calicoctl replace -f minikube-m04.yaml</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Successfully replaced 1 <span class="string">&#x27;Node&#x27;</span> resource(s)</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在指定的节点打上标签</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl label node minikube-m04 minikube-m03 route-reflector=true</span><br></pre></td></tr></table></figure>
+
+<h5 id="配置bgp对等体"><a href="#配置bgp对等体" class="headerlink" title="配置bgp对等体"></a>配置bgp对等体</h5><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">BGPPeer</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">crd.projectcalico.org/v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">node-rr</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">nodeSelector:</span> <span class="string">all()</span></span><br><span class="line">  <span class="attr">peerSelector:</span> <span class="string">route-reflector</span> <span class="string">==</span> <span class="string">&#x27;true&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>修改bgp配置，关闭mesh模式</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">projectcalico.org/v3</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">BGPConfiguration</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">logSeverityScreen:</span> <span class="string">Info</span></span><br><span class="line">  <span class="attr">nodeToNodeMeshEnabled:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">asNumber:</span> <span class="number">63400</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="查看节点bgp状态"><a href="#查看节点bgp状态" class="headerlink" title="查看节点bgp状态"></a>查看节点bgp状态</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">rr模式的节点上</span></span><br><span class="line">root@minikube-m03:~# calicoctl node status</span><br><span class="line">Calico process is running.</span><br><span class="line"></span><br><span class="line">IPv4 BGP status</span><br><span class="line">+--------------+---------------+-------+----------+-------------+</span><br><span class="line">| PEER ADDRESS |   PEER TYPE   | STATE |  SINCE   |    INFO     |</span><br><span class="line">+--------------+---------------+-------+----------+-------------+</span><br><span class="line">| 192.168.49.2 | node specific | up    | 03:17:41 | Established |</span><br><span class="line">| 192.168.49.3 | node specific | up    | 03:17:41 | Established |</span><br><span class="line">| 192.168.49.5 | node specific | up    | 03:17:41 | Established |</span><br><span class="line">+--------------+---------------+-------+----------+-------------+</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">普通节点</span></span><br><span class="line">root@minikube:~# calicoctl node status </span><br><span class="line">Calico process is running.</span><br><span class="line"></span><br><span class="line">IPv4 BGP status</span><br><span class="line">+--------------+---------------+-------+----------+-------------+</span><br><span class="line">| PEER ADDRESS |   PEER TYPE   | STATE |  SINCE   |    INFO     |</span><br><span class="line">+--------------+---------------+-------+----------+-------------+</span><br><span class="line">| 192.168.49.4 | node specific | up    | 03:17:41 | Established |</span><br><span class="line">| 192.168.49.5 | node specific | up    | 03:17:43 | Established |</span><br><span class="line">+--------------+---------------+-------+----------+-------------+</span><br></pre></td></tr></table></figure>
+
+<h4 id="BGP-TOR路由"><a href="#BGP-TOR路由" class="headerlink" title="BGP-TOR路由"></a>BGP-TOR路由</h4><p><code>Top of Rack</code>机架上面的交换机</p>
+<p><img src="/../images/calico-bgp-5.png" alt="calico-bgp"></p>
+<ul>
+<li>这个方案中所有的节点将bgp信息宣告给tor交换机由交换机负责bgp宣告</li>
+<li>需要硬件交换机和路由器中整体部署bgp网络，然后宣告给这个网络</li>
+</ul>
+<h4 id="IPIP-VXLAN跨子网模式"><a href="#IPIP-VXLAN跨子网模式" class="headerlink" title="IPIP&#x2F;VXLAN跨子网模式"></a>IPIP&#x2F;VXLAN跨子网模式</h4><ul>
+<li>当跨子网时使用<code>ipip/vxlan</code>来进行通讯</li>
+<li>将ippool中的<code>IPIPMODE</code>或<code>VXLANMODE</code>修改为<code>CrossSubnet</code>即可</li>
+</ul>
+<h5 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">kubectl get no</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># kubectl get no</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME            STATUS   ROLES           AGE   VERSION</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10-72-137-177   Ready    control-plane   14d   v1.27.1</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10-72-164-144   Ready    control-plane   14d   v1.27.1</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10-72-164-145   Ready    control-plane   14d   v1.27.1</span></span><br><span class="line"></span><br><span class="line">kubectl get po -o wide</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># kubectl get po -o wide</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME             READY   STATUS    RESTARTS   AGE   IP              NODE            NOMINATED NODE   READINESS GATES</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">net-test-5g2hg   1/1     Running   0          14d   10.244.90.196   10-72-164-145   &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">net-test-5j2kw   1/1     Running   0          14d   10.244.77.194   10-72-164-144   &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">net-test-dzhhs   1/1     Running   0          14d   10.244.90.132   10-72-137-177   &lt;none&gt;           &lt;none&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>10.72.137.177</code>为一个子网，<code>10.72.164.144,10.72.164.145</code>为同一个子网</li>
+</ul>
+<h5 id="IPIP"><a href="#IPIP" class="headerlink" title="IPIP"></a>IPIP</h5><ul>
+<li>修改ipip为<code>CrossSubnet</code></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭vxlan如果开启了</span></span><br><span class="line">calicoctl patch ippool default-ipv4-ippool  -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;vxlanMode&quot;: &quot;Never&quot;&#125;&#125;&#x27;</span><br><span class="line">calicoctl patch ippool default-ipv4-ippool  -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;ipipMode&quot;: &quot;CrossSubnet&quot;&#125;&#125;&#x27;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">确认修改</span></span><br><span class="line">calicoctl get ippool default-ipv4-ippool -o wide</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># calicoctl get ippool default-ipv4-ippool -o wide</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME                  CIDR            NAT    IPIPMODE      VXLANMODE   DISABLED   DISABLEBGPEXPORT   SELECTOR</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default-ipv4-ippool   10.244.0.0/16   <span class="literal">true</span>   CrossSubnet   Never       <span class="literal">false</span>      <span class="literal">false</span>              all()</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看路由</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ip r</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># ip r</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default via 10.72.164.1 dev eth0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.72.164.0/24 dev eth0 proto kernel scope <span class="built_in">link</span> src 10.72.164.144</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">blackhole 10.244.77.192/26 proto bird</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.77.194 dev cali97faa6acd6c scope <span class="built_in">link</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.77.195 dev cali8192f92cc2f scope <span class="built_in">link</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.90.128/26 via 10.72.137.177 dev tunl0 proto bird onlink 跨子网使用了tunlo这个网卡</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.90.192/26 via 10.72.164.145 dev eth0 proto bird</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>确认是ipip网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ip addr show  tunl0</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># ip addr show  tunl0</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">9: tunl0@NONE: &lt;NOARP,UP,LOWER_UP&gt; mtu 1480 qdisc noqueue state UNKNOWN qlen 1000</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ipip 0.0.0.0 brd 0.0.0.0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet 10.244.77.199/32 scope global tunl0</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/calico-ipip-2.png" alt="calico-ipip"></p>
+<ul>
+<li>通过路由可以看到ipip在CrossSubnet下同子网直接通过bgp(bird)获取的路由发送出去,跨子网则使用了ipip隧道</li>
+</ul>
+<h5 id="VXLAN"><a href="#VXLAN" class="headerlink" title="VXLAN"></a>VXLAN</h5><ul>
+<li>修改VXLANMODE为CrossSubnet</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">calicoctl patch ippool default-ipv4-ippool  -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;ipipMode&quot;: &quot;Never&quot;&#125;&#125;&#x27;</span><br><span class="line">calicoctl patch ippool default-ipv4-ippool  -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;vxlanMode&quot;: &quot;CrossSubnet&quot;&#125;&#125;&#x27;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">确认下</span></span><br><span class="line">calicoctl get ippool default-ipv4-ippool -o wide</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># calicoctl get ippool default-ipv4-ippool -o wide</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME                  CIDR            NAT    IPIPMODE   VXLANMODE     DISABLED   DISABLEBGPEXPORT   SELECTOR</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default-ipv4-ippool   10.244.0.0/16   <span class="literal">true</span>   Never      CrossSubnet   <span class="literal">false</span>      <span class="literal">false</span>              all()</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看路由</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ip r</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># ip r</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default via 10.72.164.1 dev eth0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.72.164.0/24 dev eth0 proto kernel scope <span class="built_in">link</span> src 10.72.164.144</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.0.192/26 via 10.72.164.145 dev eth0 proto 80 onlink</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">blackhole 10.244.77.192/26 proto 80</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.77.194 dev cali97faa6acd6c scope <span class="built_in">link</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.77.195 dev cali8192f92cc2f scope <span class="built_in">link</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.90.128/26 via 10.244.90.135 dev vxlan.calico onlink 跨子网使用了vxlan</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.90.192/26 via 10.72.164.145 dev eth0 proto 80 onlink 同子网其他节点</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>查看vxlan网卡</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ip addr show vxlan.calico</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># ip addr show vxlan.calico</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">43: vxlan.calico: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc noqueue state UNKNOWN</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    <span class="built_in">link</span>/ether 66:80:c0:e8:b1:d7 brd ff:ff:ff:ff:ff:ff</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet 10.244.77.200/32 scope global vxlan.calico</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">       valid_lft forever preferred_lft forever</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">    inet6 fe80::6480:c0ff:fee8:b1d7/64 scope <span class="built_in">link</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">       valid_lft forever preferred_lft forever</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/calico-vxlan-2.png" alt="calico-vxlan"></p>
+<ul>
+<li>结论通过路由可以看到vxlan在CrossSubnet下同子网直接通过eth0发送出去,跨子网则使用了vxlan</li>
+</ul>
+<h5 id="跨子网bgp-full-mesh模式下路由"><a href="#跨子网bgp-full-mesh模式下路由" class="headerlink" title="跨子网bgp full mesh模式下路由"></a>跨子网bgp full mesh模式下路由</h5><ul>
+<li>查看路由</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># calicoctl get ippool default-ipv4-ippool -o wide</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME                  CIDR            NAT    IPIPMODE   VXLANMODE   DISABLED   DISABLEBGPEXPORT   SELECTOR</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default-ipv4-ippool   10.244.0.0/16   <span class="literal">true</span>   Never      Never       <span class="literal">false</span>      <span class="literal">false</span>              all()</span></span><br><span class="line"></span><br><span class="line">ip r</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># ip r</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">default via 10.72.164.1 dev eth0</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.72.164.0/24 dev eth0 proto kernel scope <span class="built_in">link</span> src 10.72.164.144</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">blackhole 10.244.77.192/26 proto bird</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.77.194 dev cali97faa6acd6c scope <span class="built_in">link</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.77.195 dev cali8192f92cc2f scope <span class="built_in">link</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.90.128/26 via 10.72.164.1 dev eth0 proto bird</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">10.244.90.192/26 via 10.72.164.145 dev eth0 proto bird</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>可以看到在跨子网时,路由指向了当前节点的网关，但我们的网关却不知道10.244.90.128&#x2F;26路由到哪里，所以10.244.90.128&#x2F;26的地址不通</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">k get po -o wide</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># k get po -o wide</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME             READY   STATUS    RESTARTS   AGE   IP              NODE            NOMINATED NODE   READINESS GATES</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">net-test-5g2hg   1/1     Running   0          14d   10.244.90.196   10-72-164-145   &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">net-test-5j2kw   1/1     Running   0          14d   10.244.77.194   10-72-164-144   &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">net-test-dzhhs   1/1     Running   0          14d   10.244.90.132   10-72-137-177   &lt;none&gt;           &lt;none&gt;</span></span><br><span class="line">k exec -it net-test-5g2hg -- ping 10.244.90.132</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">[root@10-72-164-144 ~]<span class="comment"># k exec -it net-test-5g2hg -- ping 10.244.90.132</span></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">PING 10.244.90.132 (10.244.90.132): 56 data bytes</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>符合预期</li>
+</ul>
+<h5 id="将ipip和vxlan全部设置为CrossSubnet"><a href="#将ipip和vxlan全部设置为CrossSubnet" class="headerlink" title="将ipip和vxlan全部设置为CrossSubnet"></a>将ipip和vxlan全部设置为CrossSubnet</h5><ul>
+<li>不行</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@10-72-164-144 ~]# calicoctl patch ippool default-ipv4-ippool  -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;vxlanMode&quot;: &quot;CrossSubnet&quot;&#125;&#125;&#x27;</span><br><span class="line">Successfully patched 1 &#x27;IPPool&#x27; resource</span><br><span class="line">[root@10-72-164-144 ~]# calicoctl patch ippool default-ipv4-ippool  -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;ipipMode&quot;: &quot;CrossSubnet&quot;&#125;&#125;&#x27;</span><br><span class="line">Hit error: updating existing resource: error with field IPPool.Spec.VXLANMode = &#x27;CrossSubnet&#x27; (Cannot enable both VXLAN and IPIP on the same IPPool)</span><br></pre></td></tr></table></figure>
+
+<h4 id="EBPF"><a href="#EBPF" class="headerlink" title="EBPF"></a>EBPF</h4><blockquote>
+<p>epbf是一个内核虚拟机</p>
+</blockquote>
+<h5 id="EBPF部署"><a href="#EBPF部署" class="headerlink" title="EBPF部署"></a>EBPF部署</h5><h6 id="环境验证"><a href="#环境验证" class="headerlink" title="环境验证"></a>环境验证</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">uname -rv</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">docker@minikube:~$ <span class="built_in">uname</span> -rv</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">5.15.49-linuxkit <span class="comment">#1 SMP PREEMPT Tue Sep 13 07:51:32 UTC 2022</span></span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>ebpf对内核版本要求比较高，内核版本最高5.0往上，红帽4.8往上也行</li>
+</ul>
+<h6 id="修改api-server地址"><a href="#修改api-server地址" class="headerlink" title="修改api-server地址"></a>修改api-server地址</h6><ul>
+<li>calico默认使用的是kube-proxy提供的api-server的svc地址需要改为api-server负载均衡的地址</li>
+<li>可以通过<code>kubelet</code>的配置文件来查看，</li>
+<li>创建配置文件</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">kubernetes-services-endpoint</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-system</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">KUBERNETES_SERVICE_HOST:</span> <span class="string">&quot;192.168.49.2&quot;</span> <span class="comment"># &lt;API server host&gt;</span></span><br><span class="line">  <span class="attr">KUBERNETES_SERVICE_PORT:</span> <span class="string">&quot;8443&quot;</span>         <span class="comment"># &lt;API server port&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>重启calico组件</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system rollout restart deployment calico-kube-controllers</span><br><span class="line">kubectl -n kube-system rollout restart ds calico-node</span><br></pre></td></tr></table></figure>
+
+<h6 id="开启ebpf"><a href="#开启ebpf" class="headerlink" title="开启ebpf"></a>开启ebpf</h6><ul>
+<li>配置kube-proxy</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl patch ds -n kube-system kube-proxy -p &#x27;&#123;&quot;spec&quot;:&#123;&quot;template&quot;:&#123;&quot;spec&quot;:&#123;&quot;nodeSelector&quot;:&#123;&quot;non-calico&quot;: &quot;true&quot;&#125;&#125;&#125;&#125;&#125;&#x27;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>开启ebpf</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">calicoctl patch felixconfiguration default --patch=&#x27;&#123;&quot;spec&quot;: &#123;&quot;bpfEnabled&quot;: true&#125;&#125;&#x27;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">Successfully patched 1 <span class="string">&#x27;FelixConfiguration&#x27;</span> resource</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="开启dsr"><a href="#开启dsr" class="headerlink" title="开启dsr"></a>开启dsr</h6><blockquote>
+<p>dsr可以保留客户端ip</p>
+</blockquote>
+<ul>
+<li><p>主要是修改<code>BPFExternalServiceMode</code>这个变量</p>
+</li>
+<li><p>开启dsr</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">calicoctl patch felixconfiguration default --patch=&#x27;&#123;&quot;spec&quot;: &#123;&quot;bpfExternalServiceMode&quot;: &quot;DSR&quot;&#125;&#125;&#x27;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>回滚</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">calicoctl patch felixconfiguration default --patch=&#x27;&#123;&quot;spec&quot;: &#123;&quot;bpfExternalServiceMode&quot;: &quot;Tunnel&quot;&#125;&#125;&#x27;</span><br></pre></td></tr></table></figure>
+
+<h4 id="IP地址管理"><a href="#IP地址管理" class="headerlink" title="IP地址管理"></a>IP地址管理</h4><h5 id="静态ip"><a href="#静态ip" class="headerlink" title="静态ip"></a>静态ip</h5><ul>
+<li><p>一般来说pod不需要pod的ip是静态的，而是已通过service来访问，但是在安全等领域可能需要pod的ip是静态或者一小段范围</p>
+</li>
+<li><p>使用ipam里面的ip</p>
+</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">  <span class="attr">&#x27;cni.projectcalico.org/ipAddrs&#x27;:</span> <span class="string">&#x27;[&quot;192.168.0.1&quot;]&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="不使用ipam里面的ip"><a href="#不使用ipam里面的ip" class="headerlink" title="不使用ipam里面的ip"></a>不使用ipam里面的ip</h6><blockquote>
+<p>此功能需要cni开启特性才行</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system edit cm calico-config</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;any_name&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;cniVersion&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.1.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;calico&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;ipam&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;calico-ipam&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;feature_control&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ip_addrs_no_ipam&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>然后重启calico的agent</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system rollout restart ds calico-node</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在pod上添加下面的注释</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">  <span class="attr">&#x27;cni.projectcalico.org/ipAddrsNoIpam&#x27;:</span> <span class="string">&#x27;[&quot;10.0.0.1&quot;]&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>此时pod的ip则会设置为<code>10.0.0.1</code>,但是这个ip只能在你在pod所在的node上ping通过，路由等需要自己手动处理</li>
+</ul>
+<h5 id="Floating-IP-浮动ip"><a href="#Floating-IP-浮动ip" class="headerlink" title="Floating IP(浮动ip)"></a>Floating IP(浮动ip)</h5><blockquote>
+<p>Floating IP（浮动IP）是一种IP地址分配技术，它能够将一个IP地址从一台主机转移到另一台主机。 浮动IP通常用于云计算环境中，因为在这种环境下，虚拟资源（如虚拟机）可能随时在不同的物理主机之间移动。</p>
+</blockquote>
+<div class="note warning"><p>只能在BGP模式下使用</p>
+</div>
+
+<ul>
+<li>也需要打开特性和上面noipam的类似方法不做赘述</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;any_name&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;cniVersion&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.1.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;calico&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;ipam&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;calico-ipam&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;feature_control&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;floating_ips&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">  <span class="attr">&#x27;cni.projectcalico.org/floatingIPs&#x27;:</span> <span class="string">&#x27;[&quot;10.0.0.1&quot;]&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="IP预留"><a href="#IP预留" class="headerlink" title="IP预留"></a>IP预留</h5><ul>
+<li>顾名思义保留的ip不会分配给pod</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">crd.projectcalico.org/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">IPReservation</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-ipreservation-1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">reservedCIDRs:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">192.168</span><span class="number">.2</span><span class="number">.3</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">10.0</span><span class="number">.2</span><span class="number">.3</span><span class="string">/32</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">cafe:f00d::/123</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h5><p>pod的注释&gt;pod所在的ns的注释&gt;ippool</p>
+<h4 id="带宽限制"><a href="#带宽限制" class="headerlink" title="带宽限制"></a>带宽限制</h4><ul>
+<li>cni配置文件需要设置如下参数</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;bandwidth&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;capabilities&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;bandwidth&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在pod上配置带宽</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">annotations:</span></span><br><span class="line">    <span class="attr">kubernetes.io/ingress-bandwidth:</span> <span class="string">1M</span> <span class="comment"># 进入</span></span><br><span class="line">    <span class="attr">kubernetes.io/egress-bandwidth:</span> <span class="string">1M</span>  <span class="comment"># 出口</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>实际是调用了<code>bandwidth</code>这个cni插件</li>
+</ul>
+<h4 id="指定MAC地址"><a href="#指定MAC地址" class="headerlink" title="指定MAC地址"></a>指定MAC地址</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">annotations:</span></span><br><span class="line">  <span class="attr">&quot;cni.projectcalico.org/hwAddr&quot;:</span> <span class="string">&quot;1c:0c:0a:c0:ff:ee&quot;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>重启pod生效</li>
+</ul>
+<h4 id="开启ipv6支持"><a href="#开启ipv6支持" class="headerlink" title="开启ipv6支持"></a>开启ipv6支持</h4><blockquote>
+<p>ipv6需要k8s同步开启双栈</p>
+</blockquote>
+<h5 id="修改cni配置文件"><a href="#修改cni配置文件" class="headerlink" title="修改cni配置文件"></a>修改cni配置文件</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system edit cm calico-config</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;ipam&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;calico-ipam&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;assign_ipv4&quot;</span><span class="punctuation">:</span> <span class="string">&quot;true&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;assign_ipv6&quot;</span><span class="punctuation">:</span> <span class="string">&quot;true&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="修改DS环境变量"><a href="#修改DS环境变量" class="headerlink" title="修改DS环境变量"></a>修改DS环境变量</h5><table>
+<thead>
+<tr>
+<th>环境变量</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IP6</td>
+<td>autodetect</td>
+</tr>
+<tr>
+<td>FELIX_IPV6SUPPORT</td>
+<td>true</td>
+</tr>
+</tbody></table>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">修改环境变量</span></span><br><span class="line">kubectl -n kube-system set env ds/calico-node -c calico-node IP6=autodetect</span><br><span class="line">kubectl -n kube-system set env ds/calico-node -c calico-node FELIX_IPV6SUPPORT=true</span><br></pre></td></tr></table></figure>
+
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://docs.tigera.io/calico/latest/about">https://docs.tigera.io/calico/latest/about</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cni/" rel="tag"># cni</a>
+              <a href="/tags/%E7%BD%91%E7%BB%9C/" rel="tag"># 网络</a>
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/11/gomod%E4%BD%BF%E7%94%A8%E7%A7%81%E6%9C%89%E4%BB%93%E5%BA%93/" rel="prev" title="gomod使用私有仓库">
+                  <i class="fa fa-angle-left"></i> gomod使用私有仓库
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/05/25/%E4%BD%BF%E7%94%A8kubespray%E9%83%A8%E7%BD%B2k8s%E9%9B%86%E7%BE%A4/" rel="next" title="使用kubespray部署k8s集群">
+                  使用kubespray部署k8s集群 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

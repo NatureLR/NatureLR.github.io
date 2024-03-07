@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="前面介绍了插件注册以及启动,本次介绍下载镜像的过程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="containerd源码-下载镜像">
+<meta property="og:url" content="http://blog.naturelr.cc/2023/11/03/containerd%E6%BA%90%E7%A0%81-%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="前面介绍了插件注册以及启动,本次介绍下载镜像的过程">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.naturelr.cc/images/containerd-8.png">
+<meta property="article:published_time" content="2023-11-03T06:11:00.000Z">
+<meta property="article:modified_time" content="2024-03-06T06:07:54.418Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="k8s">
+<meta property="article:tag" content="containerd">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.naturelr.cc/images/containerd-8.png">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2023/11/03/containerd%E6%BA%90%E7%A0%81-%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2023/11/03/containerd%E6%BA%90%E7%A0%81-%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F/","path":"2023/11/03/containerd源码-下载镜像/","title":"containerd源码-下载镜像"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>containerd源码-下载镜像 | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.</span> <span class="nav-text">下载</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%A4%84%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">命令行处理</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#fetch"><span class="nav-number">1.2.</span> <span class="nav-text">fetch</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%9B%E5%BB%BAIMAGE"><span class="nav-number">1.3.</span> <span class="nav-text">创建IMAGE</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%8E%8B"><span class="nav-number">2.</span> <span class="nav-text">解压</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#chanid%E8%AE%A1%E7%AE%97"><span class="nav-number">2.1.</span> <span class="nav-text">chanid计算</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2023/11/03/containerd%E6%BA%90%E7%A0%81-%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="containerd源码-下载镜像 | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          containerd源码-下载镜像
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-11-03 14:11:00" itemprop="dateCreated datePublished" datetime="2023-11-03T14:11:00+08:00">2023-11-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-03-06 14:07:54" itemprop="dateModified" datetime="2024-03-06T14:07:54+08:00">2024-03-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>前面介绍了插件注册以及启动,本次介绍下载镜像的过程</p>
+<span id="more"></span>
+
+<p>代码版本为v.17.5</p>
+<blockquote>
+<p>主要依据ctr命令行工具的代码来阅读(cri还有套逻辑)，本文视角视角主要在客户端，服务端在后面的解析</p>
+</blockquote>
+<h4 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h4><h5 id="命令行处理"><a href="#命令行处理" class="headerlink" title="命令行处理"></a>命令行处理</h5><ul>
+<li>老套路，直接点进去看<code>app.New()</code></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cmd/ctr/main.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  app := app.New()</span><br><span class="line">  app.Commands = <span class="built_in">append</span>(app.Commands, pluginCmds...)</span><br><span class="line">  <span class="keyword">if</span> err := app.Run(os.Args); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    fmt.Fprintf(os.Stderr, <span class="string">&quot;ctr: %s\n&quot;</span>, err)</span><br><span class="line">    os.Exit(<span class="number">1</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里面手机了很多子命令，我们主要关注<code>images.Command</code></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cmd/ctr/app/main.go</span></span><br><span class="line">app.Commands = <span class="built_in">append</span>([]cli.Command&#123;</span><br><span class="line">    plugins.Command,</span><br><span class="line">    versionCmd.Command,</span><br><span class="line">    containers.Command,</span><br><span class="line">    content.Command,</span><br><span class="line">    events.Command,</span><br><span class="line">    images.Command,</span><br><span class="line">    leases.Command,</span><br><span class="line">    namespacesCmd.Command,</span><br><span class="line">    pprof.Command,</span><br><span class="line">    run.Command,</span><br><span class="line">    snapshots.Command,</span><br><span class="line">    tasks.Command,</span><br><span class="line">    install.Command,</span><br><span class="line">    ociCmd.Command,</span><br><span class="line">  &#125;, extraCmds...)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>依然是收集命令的结构，点击去查看<code>pullCommand</code></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cmd/ctr/commands/images/images.go</span></span><br><span class="line"><span class="keyword">var</span> Command = cli.Command&#123;</span><br><span class="line">  Name:    <span class="string">&quot;images&quot;</span>,</span><br><span class="line">  Aliases: []<span class="type">string</span>&#123;<span class="string">&quot;image&quot;</span>, <span class="string">&quot;i&quot;</span>&#125;,</span><br><span class="line">  Usage:   <span class="string">&quot;manage images&quot;</span>,</span><br><span class="line">  Subcommands: cli.Commands&#123;</span><br><span class="line">    checkCommand,</span><br><span class="line">    exportCommand,</span><br><span class="line">    importCommand,</span><br><span class="line">    listCommand,</span><br><span class="line">    mountCommand,</span><br><span class="line">    unmountCommand,</span><br><span class="line">    pullCommand,</span><br><span class="line">    pushCommand,</span><br><span class="line">    removeCommand,</span><br><span class="line">    tagCommand,</span><br><span class="line">    setLabelsCommand,</span><br><span class="line">    convertCommand,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里开始进入pull相关代码，主要在<code>Action</code>下,精简了下代码</li>
+<li>首先创建了一个客户端，然后客户端获取了一个lease</li>
+<li>最后开始下载，点进去<code>Fetch()</code></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cmd/ctr/commands/images/pull.go</span></span><br><span class="line"></span><br><span class="line">client, ctx, cancel, err := commands.NewClient(context)</span><br><span class="line">    <span class="keyword">defer</span> cancel()</span><br><span class="line"></span><br><span class="line">    ctx, done, err := client.WithLease(ctx)</span><br><span class="line">    <span class="keyword">defer</span> done(ctx)</span><br><span class="line"></span><br><span class="line">    config, err := content.NewFetchConfig(ctx, context)</span><br><span class="line"></span><br><span class="line">    img, err := content.Fetch(ctx, client, ref, config)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h5 id="fetch"><a href="#fetch" class="headerlink" title="fetch"></a>fetch</h5><ul>
+<li>开始处理了下是否使用<code>TraceHTTP</code>,然后创建了一个显示进度的，这个显示进度得就是使用<code>ctr i pull</code>时显示的进度，从这里可以看到另外开了个携程负责显示</li>
+<li>紧接着根据配置文件将相关操作放到<code>opts</code>这个切片中,最后调用<code>client.Fetch()</code></li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker.io/library/alpine:3.18.3:                                                  resolved       |++++++++++++++++++++++++++++++++++++++|</span><br><span class="line">index-sha256:7144f7bab3d4c2648d7e59409f15ec52a18006a128c733fcff20d3a4a54ba44a:    done           |++++++++++++++++++++++++++++++++++++++|</span><br><span class="line">manifest-sha256:c5c5fda71656f28e49ac9c5416b3643eaa6a108a8093151d6d1afc9463be8e33: done           |++++++++++++++++++++++++++++++++++++++|</span><br><span class="line">layer-sha256:7264a8db6415046d36d16ba98b79778e18accee6ffa71850405994cffa9be7de:    done           |++++++++++++++++++++++++++++++++++++++|</span><br><span class="line">config-sha256:7e01a0d0a1dcd9e539f8e9bbd80106d59efbdf97293b3d38f5d7a34501526cdb:   done           |++++++++++++++++++++++++++++++++++++++|</span><br><span class="line">elapsed: 9.9 s                                                                    total:  3.1 Mi (322.3 KiB/s)</span><br><span class="line">unpacking linux/amd64 sha256:7144f7bab3d4c2648d7e59409f15ec52a18006a128c733fcff20d3a4a54ba44a...</span><br><span class="line">done: 294.389123ms</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cmd/ctr/commands/content/fetch.go</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Fetch loads all resources into the content store and returns the image</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Fetch</span><span class="params">(ctx context.Context, client *containerd.Client, ref <span class="type">string</span>, config *FetchConfig)</span></span> (images.Image, <span class="type">error</span>) &#123;</span><br><span class="line">ongoing := NewJobs(ref)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> config.TraceHTTP &#123;</span><br><span class="line">    ctx = httptrace.WithClientTrace(ctx, commands.NewDebugClientTrace(ctx))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 进度条</span></span><br><span class="line">  pctx, stopProgress := context.WithCancel(ctx)</span><br><span class="line">  progress := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> config.ProgressOutput != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="comment">// no progress bar, because it hides some debug logs</span></span><br><span class="line">      ShowProgress(pctx, ongoing, client.ContentStore(), config.ProgressOutput)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">close</span>(progress)</span><br><span class="line">  &#125;()</span><br><span class="line"></span><br><span class="line">  h := images.HandlerFunc(<span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context, desc ocispec.Descriptor)</span></span> ([]ocispec.Descriptor, <span class="type">error</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> desc.MediaType != images.MediaTypeDockerSchema1Manifest &#123;</span><br><span class="line">      ongoing.Add(desc)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  log.G(pctx).WithField(<span class="string">&quot;image&quot;</span>, ref).Debug(<span class="string">&quot;fetching&quot;</span>)</span><br><span class="line">  labels := commands.LabelArgs(config.Labels)</span><br><span class="line">  opts := []containerd.RemoteOpt&#123;</span><br><span class="line">    containerd.WithPullLabels(labels),</span><br><span class="line">    containerd.WithResolver(config.Resolver),</span><br><span class="line">    containerd.WithImageHandler(h),</span><br><span class="line">    containerd.WithSchema1Conversion,</span><br><span class="line">  &#125;</span><br><span class="line">  opts = <span class="built_in">append</span>(opts, config.RemoteOpts...)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> config.AllMetadata &#123;</span><br><span class="line">    opts = <span class="built_in">append</span>(opts, containerd.WithAllMetadata())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> config.PlatformMatcher != <span class="literal">nil</span> &#123;</span><br><span class="line">    opts = <span class="built_in">append</span>(opts, containerd.WithPlatformMatcher(config.PlatformMatcher))</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> _, platform := <span class="keyword">range</span> config.Platforms &#123;</span><br><span class="line">      opts = <span class="built_in">append</span>(opts, containerd.WithPlatform(platform))</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  img, err := client.Fetch(pctx, ref, opts...)</span><br><span class="line">  stopProgress()</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> images.Image&#123;&#125;, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  &lt;-progress</span><br><span class="line">  <span class="keyword">return</span> img, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里首先创建一个<code>fetchCtx</code>并将将上面一些<code>opts</code>执行到fetcCtx中</li>
+<li>然后判断是不是下载时就进行解包，ctr命令里是先下载所有layer到content存储，然后在解压到快照服务，如果这个为真则下载一个layer就解压一个，在这里不支持边下载边解压</li>
+<li>随后根据配置来决定下载的平台()</li>
+<li>最终执行<code>c.fetch()</code>，点进去</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// client.go</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Client)</span></span> Fetch(ctx context.Context, ref <span class="type">string</span>, opts ...RemoteOpt) (images.Image, <span class="type">error</span>) &#123;</span><br><span class="line">  fetchCtx := defaultRemoteContext() <span class="comment">// 申明最终用于下载的组件</span></span><br><span class="line">  <span class="keyword">for</span> _, o := <span class="keyword">range</span> opts &#123;</span><br><span class="line">    <span class="keyword">if</span> err := o(c, fetchCtx); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> images.Image&#123;&#125;, err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> fetchCtx.Unpack &#123;</span><br><span class="line">    <span class="keyword">return</span> images.Image&#123;&#125;, errors.Wrap(errdefs.ErrNotImplemented, <span class="string">&quot;unpack on fetch not supported, try pull&quot;</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> fetchCtx.PlatformMatcher == <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(fetchCtx.Platforms) == <span class="number">0</span> &#123;</span><br><span class="line">      fetchCtx.PlatformMatcher = platforms.All</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">var</span> ps []ocispec.Platform</span><br><span class="line">      <span class="keyword">for</span> _, s := <span class="keyword">range</span> fetchCtx.Platforms &#123;</span><br><span class="line">        p, err := platforms.Parse(s)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> images.Image&#123;&#125;, errors.Wrapf(err, <span class="string">&quot;invalid platform %s&quot;</span>, s)</span><br><span class="line">        &#125;</span><br><span class="line">        ps = <span class="built_in">append</span>(ps, p)</span><br><span class="line">      &#125;</span><br><span class="line">      fetchCtx.PlatformMatcher = platforms.Any(ps...)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ctx, done, err := c.WithLease(ctx)</span><br><span class="line">  <span class="keyword">defer</span> done(ctx)</span><br><span class="line"></span><br><span class="line">  img, err := c.fetch(ctx, fetchCtx, ref, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> c.createNewImage(ctx, img)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过客户创建另一个cotent，为下载存储做准备</li>
+<li><code>rCtx.Resolver.Resolve()</code>镜像名字来解析index等信息</li>
+<li>接下来都是根据解析出来的<code>desc</code>解析出来的类型判断是否需要需要转换格式，主要是早期docker格式的v1版本转换,</li>
+<li>随后对<code>childerHadner</code>进行变量的判断来处理</li>
+<li>所有的hander都放到<code>handlers</code>这个切片中，然后后丢给<code>images.Handlers</code>处理</li>
+<li><code>images.Dispatch</code>对desc遍历并递归调用每层都会经过上面的hander处理</li>
+<li>最终返回一个<code>images.Image</code>对象,到此下下载镜像完成</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// pull.go</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Client)</span></span> fetch(ctx context.Context, rCtx *RemoteContext, ref <span class="type">string</span>, limit <span class="type">int</span>) (images.Image, <span class="type">error</span>) &#123;</span><br><span class="line">  store := c.ContentStore()</span><br><span class="line"></span><br><span class="line">  name, desc, err := rCtx.Resolver.Resolve(ctx, ref)</span><br><span class="line"></span><br><span class="line">  fetcher, err := rCtx.Resolver.Fetcher(ctx, name)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> (</span><br><span class="line">    handler images.Handler</span><br><span class="line">    isConvertible <span class="type">bool</span></span><br><span class="line">    converterFunc <span class="function"><span class="keyword">func</span><span class="params">(context.Context, ocispec.Descriptor)</span></span> (ocispec.Descriptor, <span class="type">error</span>)</span><br><span class="line">    limiter       *semaphore.Weighted</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> desc.MediaType == images.MediaTypeDockerSchema1Manifest &amp;&amp; rCtx.ConvertSchema1 &#123;</span><br><span class="line">    schema1Converter := schema1.NewConverter(store, fetcher)</span><br><span class="line">    handler = images.Handlers(<span class="built_in">append</span>(rCtx.BaseHandlers, schema1Converter)...)</span><br><span class="line">    isConvertible = <span class="literal">true</span></span><br><span class="line">    converterFunc = <span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context, _ ocispec.Descriptor)</span></span> (ocispec.Descriptor, <span class="type">error</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> schema1Converter.Convert(ctx)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// Get all the children for a descriptor</span></span><br><span class="line">    childrenHandler := images.ChildrenHandler(store)</span><br><span class="line">    <span class="comment">// Set any children labels for that content</span></span><br><span class="line">    childrenHandler = images.SetChildrenMappedLabels(store, childrenHandler, rCtx.ChildLabelMap)</span><br><span class="line">    <span class="keyword">if</span> rCtx.AllMetadata &#123;</span><br><span class="line">      <span class="comment">// Filter manifests by platforms but allow to handle manifest</span></span><br><span class="line">      <span class="comment">// and configuration for not-target platforms</span></span><br><span class="line">      childrenHandler = remotes.FilterManifestByPlatformHandler(childrenHandler, rCtx.PlatformMatcher)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// Filter children by platforms if specified.</span></span><br><span class="line">      childrenHandler = images.FilterPlatforms(childrenHandler, rCtx.PlatformMatcher)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Sort and limit manifests if a finite number is needed</span></span><br><span class="line">    <span class="keyword">if</span> limit &gt; <span class="number">0</span> &#123;</span><br><span class="line">      childrenHandler = images.LimitManifests(childrenHandler, rCtx.PlatformMatcher, limit)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// set isConvertible to true if there is application/octet-stream media type</span></span><br><span class="line">    convertibleHandler := images.HandlerFunc(</span><br><span class="line">      <span class="function"><span class="keyword">func</span><span class="params">(_ context.Context, desc ocispec.Descriptor)</span></span> ([]ocispec.Descriptor, <span class="type">error</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> desc.MediaType == docker.LegacyConfigMediaType &#123;</span><br><span class="line">          isConvertible = <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> []ocispec.Descriptor&#123;&#125;, <span class="literal">nil</span></span><br><span class="line">      &#125;,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    appendDistSrcLabelHandler, err := docker.AppendDistributionSourceLabel(store, ref)</span><br><span class="line"></span><br><span class="line">    handlers := <span class="built_in">append</span>(rCtx.BaseHandlers,</span><br><span class="line">      remotes.FetchHandler(store, fetcher), <span class="comment">// 负责下载</span></span><br><span class="line">      convertibleHandler,</span><br><span class="line">      childrenHandler,</span><br><span class="line">      appendDistSrcLabelHandler,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    handler = images.Handlers(handlers...)</span><br><span class="line"></span><br><span class="line">    converterFunc = <span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context, desc ocispec.Descriptor)</span></span> (ocispec.Descriptor, <span class="type">error</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> docker.ConvertManifest(ctx, store, desc)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> rCtx.HandlerWrapper != <span class="literal">nil</span> &#123;</span><br><span class="line">    handler = rCtx.HandlerWrapper(handler)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> rCtx.MaxConcurrentDownloads &gt; <span class="number">0</span> &#123;</span><br><span class="line">    limiter = semaphore.NewWeighted(<span class="type">int64</span>(rCtx.MaxConcurrentDownloads))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 递归调用</span></span><br><span class="line">  <span class="keyword">if</span> err := images.Dispatch(ctx, handler, limiter, desc); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> images.Image&#123;&#125;, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> isConvertible &#123;</span><br><span class="line">    <span class="keyword">if</span> desc, err = converterFunc(ctx, desc); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> images.Image&#123;&#125;, err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> images.Image&#123;</span><br><span class="line">    Name:   name,</span><br><span class="line">    Target: desc,</span><br><span class="line">    Labels: rCtx.Labels,</span><br><span class="line">  &#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>其中主要下载的函数是<code>remotes.FetchHandler(store, fetcher)</code>,这个函数首先判断MediaType,docker v1的直接报错报错返回<br>主要看<code>fetch</code></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// remotes/handlers.go</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// FetchHandler returns a handler that will fetch all content into the ingester</span></span><br><span class="line"><span class="comment">// discovered in a call to Dispatch. Use with ChildrenHandler to do a full</span></span><br><span class="line"><span class="comment">// recursive fetch.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">FetchHandler</span><span class="params">(ingester content.Ingester, fetcher Fetcher)</span></span> images.HandlerFunc &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context, desc ocispec.Descriptor)</span></span> (subdescs []ocispec.Descriptor, err <span class="type">error</span>) &#123;</span><br><span class="line">    ctx = log.WithLogger(ctx, log.G(ctx).WithFields(logrus.Fields&#123;</span><br><span class="line">      <span class="string">&quot;digest&quot;</span>:    desc.Digest,</span><br><span class="line">      <span class="string">&quot;mediatype&quot;</span>: desc.MediaType,</span><br><span class="line">      <span class="string">&quot;size&quot;</span>:      desc.Size,</span><br><span class="line">    &#125;))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> desc.MediaType &#123;</span><br><span class="line">    <span class="keyword">case</span> images.MediaTypeDockerSchema1Manifest:</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;%v not supported&quot;</span>, desc.MediaType)</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      err := fetch(ctx, ingester, fetcher, desc) <span class="comment">// 真正用来干活的</span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>调用<code>content.OpenWriter()</code>创建了cw,通过错误判断是不是已经存在了</li>
+<li>调用<code>Status()</code>获取状态，然后判断是content-service中大小，如果相同则提交</li>
+<li>随后调用<code>fetcher.Fetch()</code>开始真正的下载内容然后通过流式拷贝到<code>content.Writer()</code></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fetch</span><span class="params">(ctx context.Context, ingester content.Ingester, fetcher Fetcher, desc ocispec.Descriptor)</span></span> <span class="type">error</span> &#123;</span><br><span class="line">  </span><br><span class="line">  cw, err := content.OpenWriter(ctx, ingester, content.WithRef(MakeRefKey(ctx, desc)), content.WithDescriptor(desc))</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> errdefs.IsAlreadyExists(err) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> err</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> cw.Close()</span><br><span class="line"></span><br><span class="line">  ws, err := cw.Status()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> desc.Size == <span class="number">0</span> &#123;</span><br><span class="line">    <span class="comment">// most likely a poorly configured registry/web front end which responded with no</span></span><br><span class="line">    <span class="comment">// Content-Length header; unable (not to mention useless) to commit a 0-length entry</span></span><br><span class="line">    <span class="comment">// into the content store. Error out here otherwise the error sent back is confusing</span></span><br><span class="line">    <span class="keyword">return</span> errors.Wrapf(errdefs.ErrInvalidArgument, <span class="string">&quot;unable to fetch descriptor (%s) which reports content size of zero&quot;</span>, desc.Digest)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ws.Offset == desc.Size &#123;</span><br><span class="line">    <span class="comment">// If writer is already complete, commit and return</span></span><br><span class="line">    err := cw.Commit(ctx, desc.Size, desc.Digest)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &amp;&amp; !errdefs.IsAlreadyExists(err) &#123;</span><br><span class="line">      <span class="keyword">return</span> errors.Wrapf(err, <span class="string">&quot;failed commit on ref %q&quot;</span>, ws.Ref)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  rc, err := fetcher.Fetch(ctx, desc) <span class="comment">// 下载数据</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">defer</span> rc.Close()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> content.Copy(ctx, cw, rc, desc.Size, desc.Digest) <span class="comment">// 拷贝数据</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="创建IMAGE"><a href="#创建IMAGE" class="headerlink" title="创建IMAGE"></a>创建IMAGE</h5><ul>
+<li>镜像layer下载完成之后需要解压因此回到Fetch函数，执行完c.fetch之后根据返回的image对象创建了一个image,可以看到其实是根据客户端创建了一个ImagesService<br>然后创建了个imags,</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Client)</span></span> Fetch(ctx context.Context, ref <span class="type">string</span>, opts ...RemoteOpt) (images.Image, <span class="type">error</span>) &#123;</span><br><span class="line">  <span class="comment">// 省略</span></span><br><span class="line">  img, err := c.fetch(ctx, fetchCtx, ref, <span class="number">0</span>)</span><br><span class="line">  <span class="keyword">return</span> c.createNewImage(ctx, img)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Client)</span></span> createNewImage(ctx context.Context, img images.Image) (images.Image, <span class="type">error</span>) &#123;</span><br><span class="line">  is := c.ImageService()</span><br><span class="line">  <span class="keyword">for</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> created, err := is.Create(ctx, img); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> !errdefs.IsAlreadyExists(err) &#123;</span><br><span class="line">        <span class="keyword">return</span> images.Image&#123;&#125;, err</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      updated, err := is.Update(ctx, img)</span><br><span class="line">      <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// if image was removed, try create again</span></span><br><span class="line">        <span class="keyword">if</span> errdefs.IsNotFound(err) &#123;</span><br><span class="line">          <span class="keyword">continue</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> images.Image&#123;&#125;, err</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      img = updated</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      img = created</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> img, <span class="literal">nil</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="解压"><a href="#解压" class="headerlink" title="解压"></a>解压</h4><ul>
+<li>回到Action中,根据<code>content.Fetch</code>中返回的img,然后根据配置参数是否全平台来遍历</li>
+<li>循环中调用了<code>containerd.NewImageWithPlatform()</code>创建了一个<code>containerd.Image</code>类型的i,然后调用<code>i.Unpack()</code>开始解压,</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cmd/ctr/commands/images/pull.go</span></span><br><span class="line">Action: <span class="function"><span class="keyword">func</span><span class="params">(context *cli.Context)</span></span> <span class="type">error</span> &#123;</span><br><span class="line"><span class="comment">// 省略</span></span><br><span class="line"></span><br><span class="line">img, err := content.Fetch(ctx, client, ref, config)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> p []ocispec.Platform</span><br><span class="line">    <span class="keyword">if</span> context.Bool(<span class="string">&quot;all-platforms&quot;</span>) &#123;</span><br><span class="line">      p, err = images.Platforms(ctx, client.ContentStore(), img.Target)</span><br><span class="line">      <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> errors.Wrap(err, <span class="string">&quot;unable to resolve image platforms&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">for</span> _, s := <span class="keyword">range</span> context.StringSlice(<span class="string">&quot;platform&quot;</span>) &#123;</span><br><span class="line">        ps, err := platforms.Parse(s)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> errors.Wrapf(err, <span class="string">&quot;unable to parse platform %s&quot;</span>, s)</span><br><span class="line">        &#125;</span><br><span class="line">        p = <span class="built_in">append</span>(p, ps)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(p) == <span class="number">0</span> &#123;</span><br><span class="line">      p = <span class="built_in">append</span>(p, platforms.DefaultSpec())</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    start := time.Now()</span><br><span class="line">    <span class="keyword">for</span> _, platform := <span class="keyword">range</span> p &#123;</span><br><span class="line">      fmt.Printf(<span class="string">&quot;unpacking %s %s...\n&quot;</span>, platforms.Format(platform), img.Target.Digest)</span><br><span class="line">      i := containerd.NewImageWithPlatform(client, img, platforms.Only(platform))</span><br><span class="line"></span><br><span class="line">      err = i.Unpack(ctx, context.String(<span class="string">&quot;snapshotter&quot;</span>))</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> context.Bool(<span class="string">&quot;print-chainid&quot;</span>) &#123;</span><br><span class="line">        diffIDs, err := i.RootFS(ctx)</span><br><span class="line"></span><br><span class="line">        chainID := identity.ChainID(diffIDs).String()</span><br><span class="line">        fmt.Printf(<span class="string">&quot;image chain ID: %s\n&quot;</span>, chainID)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fmt.Printf(<span class="string">&quot;done: %s\t\n&quot;</span>, time.Since(start))</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>首先获取一个lease,然后执行opt传参</li>
+<li>调用<code>i.getManifest()</code>获取manifest，调用<code>i.getLayers()</code>获取layers</li>
+<li>申明一个<code>DiffService</code>和<code>ContentStore</code>以及一个<code>snapshotter</code></li>
+<li>遍历layers,开始调用<code>rootfs.ApplyLayerWithOpts</code>开始对每一层进行解压</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// image.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(i *image)</span></span> Unpack(ctx context.Context, snapshotterName <span class="type">string</span>, opts ...UnpackOpt) <span class="type">error</span> &#123;</span><br><span class="line">  ctx, done, err := i.client.WithLease(ctx)</span><br><span class="line">  <span class="keyword">defer</span> done(ctx)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> config UnpackConfig</span><br><span class="line">  <span class="keyword">for</span> _, o := <span class="keyword">range</span> opts &#123;</span><br><span class="line">    <span class="keyword">if</span> err := o(ctx, &amp;config); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  manifest, err := i.getManifest(ctx, i.platform)</span><br><span class="line"></span><br><span class="line">  layers, err := i.getLayers(ctx, i.platform, manifest)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> (</span><br><span class="line">    a  = i.client.DiffService()</span><br><span class="line">    cs = i.client.ContentStore()</span><br><span class="line"></span><br><span class="line">    chain    []digest.Digest</span><br><span class="line">    unpacked <span class="type">bool</span></span><br><span class="line">  )</span><br><span class="line">  snapshotterName, err = i.client.resolveSnapshotterName(ctx, snapshotterName)</span><br><span class="line"></span><br><span class="line">  sn, err := i.client.getSnapshotter(ctx, snapshotterName)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> config.CheckPlatformSupported &#123;</span><br><span class="line">    <span class="keyword">if</span> err := i.checkSnapshotterSupport(ctx, snapshotterName, manifest); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> _, layer := <span class="keyword">range</span> layers &#123;</span><br><span class="line">    unpacked, err = rootfs.ApplyLayerWithOpts(ctx, layer, chain, sn, a, config.SnapshotOpts, config.ApplyOpts)</span><br><span class="line">    <span class="keyword">if</span> unpacked &#123;</span><br><span class="line">      <span class="comment">// Set the uncompressed label after the uncompressed</span></span><br><span class="line">      <span class="comment">// digest has been verified through apply.</span></span><br><span class="line">      cinfo := content.Info&#123;</span><br><span class="line">        Digest: layer.Blob.Digest,</span><br><span class="line">        Labels: <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>&#123;</span><br><span class="line">          <span class="string">&quot;containerd.io/uncompressed&quot;</span>: layer.Diff.Digest.String(),</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> _, err := cs.Update(ctx, cinfo, <span class="string">&quot;labels.containerd.io/uncompressed&quot;</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> err</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    chain = <span class="built_in">append</span>(chain, layer.Diff.Digest)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  desc, err := i.i.Config(ctx, cs, i.platform)</span><br><span class="line"></span><br><span class="line">  rootfs := identity.ChainID(chain).String()</span><br><span class="line"></span><br><span class="line">  cinfo := content.Info&#123;</span><br><span class="line">    Digest: desc.Digest,</span><br><span class="line">    Labels: <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>&#123;</span><br><span class="line">      fmt.Sprintf(<span class="string">&quot;containerd.io/gc.ref.snapshot.%s&quot;</span>, snapshotterName): rootfs,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  _, err = cs.Update(ctx, cinfo, fmt.Sprintf(<span class="string">&quot;labels.containerd.io/gc.ref.snapshot.%s&quot;</span>, snapshotterName))</span><br><span class="line">  <span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>这里会请求snapshot的Stst()查看状态，通过判断错误是不是已存在来决定是否进行下一步，若一切没问题则调用<code>applyLayers()</code>正式解压</li>
+<li>这里需要注意这个<code>chainID</code>,chainID是通过每个layer的<code>sha256(sha256+sha256)</code>计算得来，其中这些sha256就是config类型的layer中<code>diff_ids</code></li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// rootfs/apply.go</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ApplyLayerWithOpts applies a single layer on top of the given provided layer chain,</span></span><br><span class="line"><span class="comment">// using the provided snapshotter, applier, and apply opts. If the layer was unpacked true</span></span><br><span class="line"><span class="comment">// is returned, if the layer already exists false is returned.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ApplyLayerWithOpts</span><span class="params">(ctx context.Context, layer Layer, chain []digest.Digest, sn snapshots.Snapshotter, a diff.Applier, opts []snapshots.Opt, applyOpts []diff.ApplyOpt)</span></span> (<span class="type">bool</span>, <span class="type">error</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> (</span><br><span class="line">    chainID = identity.ChainID(<span class="built_in">append</span>(chain, layer.Diff.Digest)).String()</span><br><span class="line">    applied <span class="type">bool</span></span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> _, err := sn.Stat(ctx, chainID); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> !errdefs.IsNotFound(err) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>, errors.Wrapf(err, <span class="string">&quot;failed to stat snapshot %s&quot;</span>, chainID)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> err := applyLayers(ctx, []Layer&#123;layer&#125;, <span class="built_in">append</span>(chain, layer.Diff.Digest), sn, a, opts, applyOpts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> !errdefs.IsAlreadyExists(err) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>, err</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      applied = <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> applied, <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>主要发送请求<code>snapshots.Prepare()</code>接口,获取到<code>mount</code>作为参数请求apply参数,随后<code>snapshots.Commit()</code></li>
+<li>到此整个解压完成</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">applyLayers</span><span class="params">(ctx context.Context, layers []Layer, chain []digest.Digest, sn snapshots.Snapshotter, a diff.Applier, opts []snapshots.Opt, applyOpts []diff.ApplyOpt)</span></span> <span class="type">error</span> &#123;</span><br><span class="line">  <span class="keyword">var</span> (</span><br><span class="line">    parent  = identity.ChainID(chain[:<span class="built_in">len</span>(chain)<span class="number">-1</span>])</span><br><span class="line">    chainID = identity.ChainID(chain)</span><br><span class="line">    layer   = layers[<span class="built_in">len</span>(layers)<span class="number">-1</span>]</span><br><span class="line">    diff    ocispec.Descriptor</span><br><span class="line">    key     <span class="type">string</span></span><br><span class="line">    mounts  []mount.Mount</span><br><span class="line">    err     <span class="type">error</span></span><br><span class="line">  )</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span> &#123;</span><br><span class="line">    key = fmt.Sprintf(snapshots.UnpackKeyFormat, uniquePart(), chainID)<span class="comment">// 生成请求的key格式</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Prepare snapshot with from parent, label as root</span></span><br><span class="line">    mounts, err = sn.Prepare(ctx, key, parent.String(), opts...)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> errdefs.IsNotFound(err) &amp;&amp; <span class="built_in">len</span>(layers) &gt; <span class="number">1</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> err := applyLayers(ctx, layers[:<span class="built_in">len</span>(layers)<span class="number">-1</span>], chain[:<span class="built_in">len</span>(chain)<span class="number">-1</span>], sn, a, opts, applyOpts); err != <span class="literal">nil</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> !errdefs.IsAlreadyExists(err) &#123;</span><br><span class="line">            <span class="keyword">return</span> err</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Do no try applying layers again</span></span><br><span class="line">        layers = <span class="literal">nil</span></span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> errdefs.IsAlreadyExists(err) &#123;</span><br><span class="line">        <span class="comment">// Try a different key</span></span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Already exists should have the caller retry</span></span><br><span class="line">      <span class="keyword">return</span> errors.Wrapf(err, <span class="string">&quot;failed to prepare extraction snapshot %q&quot;</span>, key)</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> !errdefs.IsAlreadyExists(err) &#123;</span><br><span class="line">        log.G(ctx).WithError(err).WithField(<span class="string">&quot;key&quot;</span>, key).Infof(<span class="string">&quot;apply failure, attempting cleanup&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> rerr := sn.Remove(ctx, key); rerr != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.G(ctx).WithError(rerr).WithField(<span class="string">&quot;key&quot;</span>, key).Warnf(<span class="string">&quot;extraction snapshot removal failed&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;()</span><br><span class="line"></span><br><span class="line">  diff, err = a.Apply(ctx, layer.Blob, mounts, applyOpts...)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    err = errors.Wrapf(err, <span class="string">&quot;failed to extract layer %s&quot;</span>, layer.Diff.Digest)</span><br><span class="line">    <span class="keyword">return</span> err</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> diff.Digest != layer.Diff.Digest &#123;</span><br><span class="line">    err = errors.Errorf(<span class="string">&quot;wrong diff id calculated on extraction %q&quot;</span>, diff.Digest)</span><br><span class="line">    <span class="keyword">return</span> err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> err = sn.Commit(ctx, chainID.String(), key, opts...); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    err = errors.Wrapf(err, <span class="string">&quot;failed to commit snapshot %s&quot;</span>, key)</span><br><span class="line">    <span class="keyword">return</span> err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>回到Unpack这里获取镜像的config通过chan计算出id并更新到content的标签中</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(i *image)</span></span> Unpack(ctx context.Context, snapshotterName <span class="type">string</span>, opts ...UnpackOpt) <span class="type">error</span> &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  desc, err := i.i.Config(ctx, cs, i.platform)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  rootfs := identity.ChainID(chain).String()</span><br><span class="line"></span><br><span class="line">  cinfo := content.Info&#123;</span><br><span class="line">    Digest: desc.Digest,</span><br><span class="line">    Labels: <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">string</span>&#123;</span><br><span class="line">      fmt.Sprintf(<span class="string">&quot;containerd.io/gc.ref.snapshot.%s&quot;</span>, snapshotterName): rootfs,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  _, err = cs.Update(ctx, cinfo, fmt.Sprintf(<span class="string">&quot;labels.containerd.io/gc.ref.snapshot.%s&quot;</span>, snapshotterName))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="chanid计算"><a href="#chanid计算" class="headerlink" title="chanid计算"></a>chanid计算</h5><ul>
+<li>下面这个diff_ids是从镜像uhub.service.ucloud.cn&#x2F;library&#x2F;nginx:1.9.7中的config截取</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line"><span class="attr">&quot;linux&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;rootfs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;layers&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;diff_ids&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;sha256:12e469267d21d66ac9dcae33a4d3d202ccb2591869270b95d0aad7516c7d075b&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:031458dc7254bd4da9c9ca8186b60aef311d0c921a846c6d2b281779035e2c7c&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:ebfc3a74f1601ad380e5e5a09738e952a5f86861a24e6efc00d0e03c0bd47d93&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:673cf6d9dedba7cfb37ebd2c06f2373d16a29504976ca7e40335fb53e81cab16&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:40f240c1cbdb8a32ef21e2ec9154e65cc84027f238e453d69a7bb33246d6890b&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:0b3fbb980e2d51043bd23f9af674a536225fe023605cc485bac77dbb6111b433&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>如果只有一层的话就是自己</p>
+</li>
+<li><p>拿第一层的sha256的值加上空格加上第二层的sha256的值然后使用sha256,我们发现结果是<code>a8118485e4e7548235fa8a00da06ecc21b31dea6bf5a7dd2eed99b47f70ed000</code></p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo -n &quot;sha256:12e469267d21d66ac9dcae33a4d3d202ccb2591869270b95d0aad7516c7d075b sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot; |shasum -a 256</span><br><span class="line">eb0cfd964b3fe37432b0bb666bd537ca1ea730cf517eb2d0d3783b952ad10204  -</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>同样用上一层的chan_id加上第三层的id</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo -n &quot;sha256:eb0cfd964b3fe37432b0bb666bd537ca1ea730cf517eb2d0d3783b952ad10204 sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef&quot; |shasum -a 256</span><br><span class="line">a8118485e4e7548235fa8a00da06ecc21b31dea6bf5a7dd2eed99b47f70ed000  -</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>我们可以验证下,使用<a target="_blank" rel="noopener" href="https://github.com/br0xen/boltbrowser">boltbrowser</a>打开位于在<code>/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/metadata.db</code>的snap的数据库，如下图所示符合预期</li>
+</ul>
+<p><img src="/../images/containerd-8.png" alt="Alt text"></p>
+<ul>
+<li>所谓diff_id是当前层和父层的变化,将所有的diff_id组合起来就是一个我们在dockerfile中编写的镜像</li>
+</ul>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><pre><code class="highlight mermaid">sequenceDiagram
+    autonumber
+    participant hub as 仓库
+    participant client as 客户端
+    participant diff as diff-service
+    participant content as content-service
+    participant snapshotter as snapshotter-service
+    participant image as image-service
+
+    client-&gt;&gt;hub:获取镜像index
+    client-&gt;&gt;content:存储index信息(content.Writer)
+    client-&gt;&gt;hub:获取manifests
+    client-&gt;&gt;content:存储manifests信息(content.Writer)
+    client-&gt;&gt;hub:获取config
+    client-&gt;&gt;content:存储manifests信息(content.Writer)
+
+    loop 保存所有的layers
+    client-&gt;&gt;hub:下载镜像
+    client-&gt;&gt;content:获取状态(content.Status)
+    client-&gt;&gt;content:写入layer(content.Writer)
+    client-&gt;&gt;content:提交layer(content.Commit)
+    client-&gt;&gt;content:读取元信息(content.ReadAt)
+    end
+    client-&gt;&gt;image:创建镜像(image.Create)
+    #client-&gt;&gt;image:创建镜像(如果已经存在)(image.Update)
+
+    loop 遍历layer解压缩到snapshot
+    client-&gt;&gt;snapshotter:获取snap状态判断是否已存在(snapper.Status)
+    client-&gt;&gt;snapshotter:创建snap(snapper.Prepare)
+    client-&gt;&gt;diff:apply layer(diff.Apply)
+    diff-&gt;&gt;content:读取layers(content.ReaderAt)
+    diff-&gt;&gt;diff:写入解压后的layers(路径是prepare给的)
+    client-&gt;&gt;snapshotter:提交快照
+    end</code></pre>
+
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/alex_yangchuansheng/article/details/111829103">https://blog.csdn.net/alex_yangchuansheng/article/details/111829103</a><br><a target="_blank" rel="noopener" href="https://www.myway5.com/index.php/2021/05/24/containerd-storage">https://www.myway5.com/index.php/2021/05/24/containerd-storage</a><br><a target="_blank" rel="noopener" href="https://www.myway5.com/index.php/2021/05/18/container-image">https://www.myway5.com/index.php/2021/05/18/container-image</a><br><a target="_blank" rel="noopener" href="https://www.myway5.com/index.php/2021/05/24/containerd-storage/">https://www.myway5.com/index.php/2021/05/24/containerd-storage/</a><br><a target="_blank" rel="noopener" href="https://github.com/containerd/containerd/blob/main/docs/content-flow.md">https://github.com/containerd/containerd/blob/main/docs/content-flow.md</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_40864891/article/details/107330218">https://blog.csdn.net/weixin_40864891/article/details/107330218</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/containerd/" rel="tag"># containerd</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/27/containerd%E6%BA%90%E7%A0%81-%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E6%8F%92%E4%BB%B6%E6%B3%A8%E5%86%8C/" rel="prev" title="containerd源码-启动过程插件注册">
+                  <i class="fa fa-angle-left"></i> containerd源码-启动过程插件注册
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/11/03/containerd%E6%BA%90%E7%A0%81-content/" rel="next" title="containerd源码-content">
+                  containerd源码-content <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

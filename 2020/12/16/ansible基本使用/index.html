@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Ansible是一个自动化运维工具，可以实现批量配置，部署，命令等功能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ansible基本使用">
+<meta property="og:url" content="http://blog.naturelr.cc/2020/12/16/ansible%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="Ansible是一个自动化运维工具，可以实现批量配置，部署，命令等功能">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-12-16T05:26:00.000Z">
+<meta property="article:modified_time" content="2024-03-06T06:07:54.412Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="ansible">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2020/12/16/ansible%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2020/12/16/ansible%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/","path":"2020/12/16/ansible基本使用/","title":"ansible基本使用"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ansible基本使用 | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E8%B7%AF%E5%BE%84"><span class="nav-number">2.</span> <span class="nav-text">配置路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA%E6%B8%85%E5%8D%95"><span class="nav-number">3.</span> <span class="nav-text">主机清单</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%9E%E7%BB%ADIP"><span class="nav-number">3.1.</span> <span class="nav-text">连续IP</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%82%E6%95%B0"><span class="nav-number">3.2.</span> <span class="nav-text">参数</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%8F%82%E6%95%B0"><span class="nav-number">3.2.1.</span> <span class="nav-text">常用参数</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%AB%E5%90%8D"><span class="nav-number">3.3.</span> <span class="nav-text">别名</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA%E7%BB%84"><span class="nav-number">3.4.</span> <span class="nav-text">主机组</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA%E7%BB%84%E5%B5%8C%E5%A5%97"><span class="nav-number">3.5.</span> <span class="nav-text">主机组嵌套</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA%E7%BB%84%E5%8F%82%E6%95%B0"><span class="nav-number">3.6.</span> <span class="nav-text">主机组参数</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97"><span class="nav-number">4.</span> <span class="nav-text">模块</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E6%A8%A1%E5%9D%97"><span class="nav-number">4.1.</span> <span class="nav-text">常用模块</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#command"><span class="nav-number">4.1.1.</span> <span class="nav-text">command</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#shell"><span class="nav-number">4.1.2.</span> <span class="nav-text">shell</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#script"><span class="nav-number">4.1.3.</span> <span class="nav-text">script</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#copy"><span class="nav-number">4.1.4.</span> <span class="nav-text">copy</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#file"><span class="nav-number">4.1.5.</span> <span class="nav-text">file</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#blockinfile"><span class="nav-number">4.1.6.</span> <span class="nav-text">blockinfile</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#lineinfile"><span class="nav-number">4.1.7.</span> <span class="nav-text">lineinfile</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#replace"><span class="nav-number">4.1.8.</span> <span class="nav-text">replace</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#systemd"><span class="nav-number">4.1.9.</span> <span class="nav-text">systemd</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#yum"><span class="nav-number">4.1.10.</span> <span class="nav-text">yum</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#cron"><span class="nav-number">4.1.11.</span> <span class="nav-text">cron</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4"><span class="nav-number">5.</span> <span class="nav-text">执行命令</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8C%87%E5%AE%9A%E6%9F%90%E4%BA%9B%E6%9C%BA%E5%99%A8%E6%89%A7%E8%A1%8C"><span class="nav-number">5.1.</span> <span class="nav-text">指定某些机器执行</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%80%E6%AD%A5%E4%B8%80%E6%AD%A5%E7%9A%84%E6%89%A7%E8%A1%8C%E4%B8%94%E7%A1%AE%E8%AE%A4"><span class="nav-number">5.2.</span> <span class="nav-text">一步一步的执行且确认</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#playbook"><span class="nav-number">6.</span> <span class="nav-text">playbook</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#tags"><span class="nav-number">6.1.</span> <span class="nav-text">tags</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%98%E9%87%8F"><span class="nav-number">6.2.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#DEBUG"><span class="nav-number">6.2.1.</span> <span class="nav-text">DEBUG</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%B3%A8%E5%86%8C%E5%8F%98%E9%87%8F"><span class="nav-number">6.2.2.</span> <span class="nav-text">注册变量</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E4%BA%A4%E4%BA%92"><span class="nav-number">6.2.3.</span> <span class="nav-text">交互</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E4%BC%A0%E5%80%BC"><span class="nav-number">6.2.4.</span> <span class="nav-text">命令行传值</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA-%E7%BB%84-%E5%8F%98%E9%87%8F"><span class="nav-number">6.2.5.</span> <span class="nav-text">主机(组)变量</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#set-fact%E5%AE%9A%E4%B9%89%E5%8F%98%E9%87%8F"><span class="nav-number">6.2.6.</span> <span class="nav-text">set_fact定义变量</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%86%85%E7%BD%AE%E5%8F%98%E9%87%8F"><span class="nav-number">6.2.7.</span> <span class="nav-text">内置变量</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF"><span class="nav-number">6.3.</span> <span class="nav-text">循环</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#with-items"><span class="nav-number">6.3.1.</span> <span class="nav-text">with_items</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-list"><span class="nav-number">6.3.2.</span> <span class="nav-text">with_list</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-flattened"><span class="nav-number">6.3.3.</span> <span class="nav-text">with_flattened</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-together"><span class="nav-number">6.3.4.</span> <span class="nav-text">with_together</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-cartesian"><span class="nav-number">6.3.5.</span> <span class="nav-text">with_cartesian</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-indexed-items"><span class="nav-number">6.3.6.</span> <span class="nav-text">with_indexed_items</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-sequence"><span class="nav-number">6.3.7.</span> <span class="nav-text">with_sequence</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-dict"><span class="nav-number">6.3.8.</span> <span class="nav-text">with_dict</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-subelements"><span class="nav-number">6.3.9.</span> <span class="nav-text">with_subelements</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-file"><span class="nav-number">6.3.10.</span> <span class="nav-text">with_file</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#with-fileglob"><span class="nav-number">6.3.11.</span> <span class="nav-text">with_fileglob</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.</span> <span class="nav-text">判断</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%AF%94%E8%BE%83%E7%AC%A6"><span class="nav-number">6.4.1.</span> <span class="nav-text">比较符</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-number">6.4.2.</span> <span class="nav-text">逻辑运算符</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.3.</span> <span class="nav-text">文件判断</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%8F%98%E9%87%8F%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.4.</span> <span class="nav-text">变量判断</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.5.</span> <span class="nav-text">执行结果判断</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%B1%BB%E5%9E%8B%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.6.</span> <span class="nav-text">文件类型判断</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.7.</span> <span class="nav-text">字符串判断</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%95%B4%E9%99%A4%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.8.</span> <span class="nav-text">整除判断</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E5%88%A4%E6%96%AD"><span class="nav-number">6.4.9.</span> <span class="nav-text">其他判断</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#handler"><span class="nav-number">6.5.</span> <span class="nav-text">handler</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#include-import-tasks"><span class="nav-number">6.6.</span> <span class="nav-text">include &amp;&amp; import tasks</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%A1%E7%89%88"><span class="nav-number">6.7.</span> <span class="nav-text">模版</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%8D%A0%E4%BD%8D%E7%AC%A6"><span class="nav-number">6.7.1.</span> <span class="nav-text">占位符</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-number">6.7.2.</span> <span class="nav-text">例子</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%A7%92%E8%89%B2"><span class="nav-number">6.8.</span> <span class="nav-text">角色</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="nav-number">6.8.1.</span> <span class="nav-text">目录结构</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E8%A7%92%E8%89%B2%E4%BE%8B%E5%AD%90"><span class="nav-number">6.8.2.</span> <span class="nav-text">角色例子</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="nav-number">6.9.</span> <span class="nav-text">过滤器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#lookup"><span class="nav-number">6.10.</span> <span class="nav-text">lookup</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9C%A8%E6%9C%AC%E5%9C%B0-%E5%8F%AA%E6%89%A7%E8%A1%8C%E4%B8%80%E6%AC%A1"><span class="nav-number">6.11.</span> <span class="nav-text">在本地&amp;&amp;只执行一次</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E6%89%A7%E8%A1%8C"><span class="nav-number">6.12.</span> <span class="nav-text">并行执行</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">7.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">79</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">45</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2020/12/16/ansible%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ansible基本使用 | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ansible基本使用
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-12-16 13:26:00" itemprop="dateCreated datePublished" datetime="2020-12-16T13:26:00+08:00">2020-12-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-03-06 14:07:54" itemprop="dateModified" datetime="2024-03-06T14:07:54+08:00">2024-03-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>Ansible是一个自动化运维工具，可以实现批量配置，部署，命令等功能</p>
+<span id="more"></span>
+
+<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><p>yum 安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum -y install ansible</span><br></pre></td></tr></table></figure>
+
+<p>pip安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install ansible</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置路径"><a href="#配置路径" class="headerlink" title="配置路径"></a>配置路径</h4><p>默认读取<code>/etc/ansible/</code>目录下的<code>主机清单</code>和<code>规则</code></p>
+<h4 id="主机清单"><a href="#主机清单" class="headerlink" title="主机清单"></a>主机清单</h4><blockquote>
+<p>记录ansible需要执行操作的目标机器文件，默认读取<code>/etc/ansible/hosts</code>，一般通过 <code>-i</code>参数指定,也可以分类写到一个文件夹下</p>
+</blockquote>
+<ul>
+<li>#开头为注释</li>
+<li>忽略空行</li>
+<li>组由[组名]定义</li>
+<li>主机名和域名都可以</li>
+<li>一个ip或域名可以是组的成员</li>
+<li>没有分组的主机写在任意的一个组的前面</li>
+</ul>
+<h5 id="连续IP"><a href="#连续IP" class="headerlink" title="连续IP"></a>连续IP</h5><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 等价于 192.168.1.1 192.168.1.2 192.168.1.2 192.168.1.3 192.168.1.4等等</span></span><br><span class="line">192.168.1.<span class="section">[1:4]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 等价于 server1.example.com server2.example.com server3.example.com等等</span></span><br><span class="line">server<span class="section">[1:3]</span>.example.com</span><br></pre></td></tr></table></figure>
+
+<h5 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h5><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">192.168.1.1 <span class="attr">ansible_ssh_user</span>=root ansible_ssh_pass=root</span><br></pre></td></tr></table></figure>
+
+<h6 id="常用参数"><a href="#常用参数" class="headerlink" title="常用参数"></a>常用参数</h6><ul>
+<li>ansible_ssh_host              目标主机地址</li>
+<li>ansible_ssh_port              目标主机端口，默认22</li>
+<li>ansible_ssh_user              目标主机用户</li>
+<li>ansible_ssh_pass              目标主机ssh密码</li>
+<li>ansible_sudo_pass             sudo密码</li>
+<li>ansible_sudo_exe</li>
+<li>ansible_connection            与主机的连接类型，比如：local,ssh或者paramiko</li>
+<li>ansible_ssh_private_key_file  私钥地址</li>
+<li>ansible_shell_type            目标系统的shell类型</li>
+<li>ansible_python_interpreter    python版本</li>
+</ul>
+<h5 id="别名"><a href="#别名" class="headerlink" title="别名"></a>别名</h5><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">test1 <span class="attr">ansible_ssh_port</span>=<span class="number">22</span> ansible_ssh_host=<span class="number">192.168</span>.<span class="number">1.1</span> ansible_ssh_user=root  　　<span class="comment"># 别名test1</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="主机组"><a href="#主机组" class="headerlink" title="主机组"></a>主机组</h5><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[foo]</span></span><br><span class="line">192.168.1.1</span><br><span class="line">192.168.2.1</span><br></pre></td></tr></table></figure>
+
+<h5 id="主机组嵌套"><a href="#主机组嵌套" class="headerlink" title="主机组嵌套"></a>主机组嵌套</h5><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[db]</span></span><br><span class="line">192.168.1.1</span><br><span class="line"></span><br><span class="line"><span class="section">[server]</span></span><br><span class="line">192.168.2.1</span><br><span class="line"></span><br><span class="line"><span class="section">[all:children]</span></span><br><span class="line">db</span><br><span class="line">server</span><br></pre></td></tr></table></figure>
+
+<h5 id="主机组参数"><a href="#主机组参数" class="headerlink" title="主机组参数"></a>主机组参数</h5><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[test]</span></span><br><span class="line">name1 <span class="attr">ansible_ssh_host</span>=<span class="number">192.168</span>.<span class="number">1</span>.[<span class="number">1</span>:<span class="number">3</span>]</span><br><span class="line"></span><br><span class="line"><span class="section">[test:vars]</span></span><br><span class="line"><span class="attr">ansible_ssh_user</span>=root</span><br><span class="line"><span class="attr">ansible_ssh_pass</span>=<span class="string">&quot;root&quot;</span></span><br><span class="line"><span class="attr">testvar</span>=<span class="string">&quot;test&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h4><blockquote>
+<p>ansible的功能都是通过模块来完成的 <br><code>ansible-doc -s &lt;模块名&gt;</code>查看模块的参数 <br><code>ansible-doc -l</code> 查看所有模块</p>
+</blockquote>
+<h5 id="常用模块"><a href="#常用模块" class="headerlink" title="常用模块"></a>常用模块</h5><blockquote>
+<p>参数中的<code>free_form</code>是各个模块的命令或args，并不是一个存在的参数</p>
+</blockquote>
+<h6 id="command"><a href="#command" class="headerlink" title="command"></a>command</h6><blockquote>
+<p>在目标主机上执行命令</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>free_form              必选表在目标机器上执行的命令</li>
+<li>chdir                  在目标主机的哪里执行命令</li>
+<li>creates                文件存在时就不执行此命令</li>
+<li>removes                和creates相反存在时就执行</li>
+</ul>
+</li>
+<li>例子：ansible test -m command -a “chdir&#x3D;&#x2F;var&#x2F;log removes&#x3D;kern.log cat kern.log” &#x2F;var&#x2F;log下kern.log存在就查看kern.log</li>
+</ul>
+<h6 id="shell"><a href="#shell" class="headerlink" title="shell"></a>shell</h6><blockquote>
+<p>和command一样不过command不支持重定向等管道操作，shell会调用<code>/bin/sh</code>执行</p>
+</blockquote>
+<ul>
+<li>参数：  <ul>
+<li>free_form:             执行的命令</li>
+<li>chdir:                 改变运行执行的目录</li>
+<li>creates:               文件存在则不就不执行命令</li>
+<li>executable:            改变命令说用的shell解释器，默认为&#x2F;bin&#x2F;sh</li>
+<li>removes:               和creates相反存在时就执行</li>
+</ul>
+</li>
+<li>例子：ansible  test -m shell -a “cat &#x2F;etc&#x2F;hosts”</li>
+</ul>
+<h6 id="script"><a href="#script" class="headerlink" title="script"></a>script</h6><blockquote>
+<p>在目标主机上执行本地主机的脚本</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>free_form:             需要执行的脚本路径</li>
+<li>chdir:                 执行脚本的目录</li>
+<li>creates:               目标机器的文件存在则不执行</li>
+<li>removes:               目标机器的文件存在则不执行</li>
+</ul>
+</li>
+<li>例子： ansible test -m script -a “test.sh”</li>
+</ul>
+<h6 id="copy"><a href="#copy" class="headerlink" title="copy"></a>copy</h6><blockquote>
+<p>复制本地文件或文件夹到目标主机上</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>src：                   指定需要copy的文件或目录</li>
+<li>dest：                  文件将被拷贝到目标主机的哪个目录中，dest为必须参数</li>
+<li>content                 不适用src时用此参数写入内容</li>
+<li>force:                  目标主机路径已经有文件且内容不相同时是否覆盖</li>
+<li>backup:                 目标主机已经有文件且内容不同时是否备份</li>
+<li>owner:                  拷贝到目标主机后的所有者</li>
+<li>group:                  拷贝到目标主机后的属组</li>
+<li>mode:                   拷贝到目标主机后的权限</li>
+</ul>
+</li>
+<li>例子： ansible test -m copy -a “src&#x3D;&#x2F;root&#x2F;test.sh dest&#x3D;&#x2F;tmp”</li>
+</ul>
+<h6 id="file"><a href="#file" class="headerlink" title="file"></a>file</h6><blockquote>
+<p>对目标主机的文件管理</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>path：                  指定目标目录或文件</li>
+<li>state：<ul>
+<li>directory：           如果目录不存在，创建目录</li>
+<li>file：                即使文件不存在，也不会被创建</li>
+<li>link：                创建软连接</li>
+<li>hard：                创建硬连接</li>
+<li>touch：               如果文件不存在，则会创建一个新的文件，如果文件或目录已存在，则更新其最后修改时</li>
+<li>absent：              删除目录、文件或者取消链接文</li>
+</ul>
+</li>
+<li>src：                   当state设置为link或者hard时，需要操作的源文件</li>
+<li>force:                  需要在两种情况下强制创建软连接，一种是源文件不存在但之后会建立的情况下；另一种是目标连接已存在，需要先取消之前的软连接，有两个选项：yes|no</li>
+<li>owner：                 指定被操作文件的所有者，</li>
+<li>group：                 指定被操作文件的所属组</li>
+<li>mode：                  权限</li>
+<li>recurse：               文件为目录时，递归目录</li>
+</ul>
+</li>
+<li>例子：<ul>
+<li>设置权限为777所属组为minikube所有者为：ansible test -m file -a “path&#x3D;&#x2F;tmp&#x2F;test.sh  mode&#x3D;777 owner&#x3D;minikube group&#x3D;minikube”</li>
+<li>创建<code>/etc/hosts</code>的软连接到home目录：ansible test -m file -a “path&#x3D;&#x2F;root&#x2F;hosts  src&#x3D;&#x2F;etc&#x2F;hosts state&#x3D;link”</li>
+</ul>
+</li>
+</ul>
+<h6 id="blockinfile"><a href="#blockinfile" class="headerlink" title="blockinfile"></a>blockinfile</h6><blockquote>
+<p>在指定的文件里修改一段文本</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>path：                 必须参数，指定要操作的文件</li>
+<li>block：                指定要操作的一段文本</li>
+<li>marker：               ansibel默认修改时会添加一个以#开头标记，可以改为自定义</li>
+<li>state:                 present为插入或者更新;absent删除</li>
+<li>insertafter：          默认会将文本插入到指定的位置的后面</li>
+<li>insertbefore：         默认会将文本插入到指定的位置的前面</li>
+<li>backup：               是否在修改文件之前对文件进行备份。</li>
+<li>create：               当要操作的文件并不存在时，是否创建对应的文件。</li>
+</ul>
+</li>
+<li>例子：<ul>
+<li>在目标主机的&#x2F;tmp&#x2F;test文件中插入ansible-test且标记内容为teststart：ansible localhost -m blockinfile -a “path&#x3D;&#x2F;tmp&#x2F;test block&#x3D;ansible-test marker&#x3D;’#{mark}teststart’”</li>
+</ul>
+</li>
+</ul>
+<h6 id="lineinfile"><a href="#lineinfile" class="headerlink" title="lineinfile"></a>lineinfile</h6><blockquote>
+<p>和<code>blockinfile</code>相似不过是一行还可以使用正则表达式</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>path：                  必须参数，指定要操作的文件</li>
+<li>line:                   要指定的文本内容</li>
+<li>regexp：                正则匹配对应的行，当替换文本时，如果有多行文本都能被匹配，则只有最后面被匹配到的那行文本才会被替换，当删除文本时，如果有多行文本都能被匹配，这么这些行都会被删除</li>
+<li>state：                 absent为删除，state的默认值为present</li>
+<li>backrefs：              在使用正则匹配时如果没有匹配到默认会在文件的末尾插入要替换的文本，设置为yes则不会</li>
+<li>insertafter：           默认会将文本插入到指定的位置的后面</li>
+<li>insertbefore：          默认会将文本插入到指定的位置的前面</li>
+<li>backup：                是否在修改文件之前对文件进行备份</li>
+<li>create：                当要操作的文件并不存在时，是否创建对应的文件<br>-例子：</li>
+<li>将&#x2F;tmp&#x2F;test的文件中#kern开头行换成kern.* &#x2F;var&#x2F;log&#x2F;kern.log:ansible localhost -m lineinfile -a ‘path&#x3D;&#x2F;tmp&#x2F;test regexp&#x3D;”^#kern” line&#x3D;”kern.* &#x2F;var&#x2F;log&#x2F;kern.log”‘</li>
+</ul>
+</li>
+</ul>
+<h6 id="replace"><a href="#replace" class="headerlink" title="replace"></a>replace</h6><blockquote>
+<p>文本替换模块</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>path：                 必须参数，指定要操作的文件，2.3版本之前，只能使用dest, destfile, name指定要操作的文件，2.4版本中，仍然可以使用这些参数名，这些参数名作为path参数的别名使用。</li>
+<li>regexp:                必须参数，指定一个python正则表达式，文件中与正则匹配的字符串将会被替换。</li>
+<li>replace：              指定最终要替换成的字符串。</li>
+<li>backup：               是否在修改文件之前对文件进行备份，最好设置为yes。</li>
+</ul>
+</li>
+<li>例子：将&#x2F;etc&#x2F;test文件中所有的<code>localhost</code>换成<code>FOO</code>: ansible localhost -m replace -a ‘path&#x3D;&#x2F;tmp&#x2F;test  regexp&#x3D;”localhost” replace&#x3D;foo’</li>
+</ul>
+<h6 id="systemd"><a href="#systemd" class="headerlink" title="systemd"></a>systemd</h6><blockquote>
+<p>运行systemd相关的命令</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>enabled:               是否设置为开机启动</li>
+<li>name:                  systemd模块名字</li>
+<li>state:                 想要设置的状态，比如<code>restartd</code>重启<code>started</code>启动、<code>stopped</code>停止、<code>reloaded</code>重新加载</li>
+<li>daemon_reload:         运行daemon-reload命令</li>
+<li>daemon_reexec:         运行daemon_reexec命令</li>
+</ul>
+</li>
+<li>例子：ansible test -m systemd -a “name&#x3D;rsyslog state&#x3D;restarted”</li>
+</ul>
+<h6 id="yum"><a href="#yum" class="headerlink" title="yum"></a>yum</h6><blockquote>
+<p>yum包管理</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>action: yum</li>
+<li>conf_file              yum的配置文件</li>
+<li>disable_gpg_check      关闭gpg_check</li>
+<li>disablerepo            不启用某个源</li>
+<li>enablerepo             启用某个源</li>
+<li>name                   指定要安装的包，如果有多个版本需要指定版本，否则安装最新的包</li>
+<li>state                  安装:<code>present</code>，安装最新版:<code>latest</code>，卸载程序包:<code>absent</code></li>
+</ul>
+</li>
+<li>例子: 安装最新版psree命令：ansible localhost -m yum -a “name&#x3D;psmisc state&#x3D;latest”</li>
+</ul>
+<h6 id="cron"><a href="#cron" class="headerlink" title="cron"></a>cron</h6><blockquote>
+<p>定时模块</p>
+</blockquote>
+<ul>
+<li>参数：<ul>
+<li>backup                 如果设置，创建一个crontab备份</li>
+<li>cron_file              如果指定, 使用这个文件cron.d，而不是单个用户crontab</li>
+<li>day                    日应该运行的工作( 1-31, *, *&#x2F;2, etc )</li>
+<li>hour                   小时 ( 0-23, *, *&#x2F;2, etc )</li>
+<li>job                    指明运行的命令是什么</li>
+<li>minute                 分钟( 0-59, *, *&#x2F;2, etc )</li>
+<li>month                  月( 1-12, *, *&#x2F;2, etc )</li>
+<li>name                   定时任务描述</li>
+<li>reboot                 任务在重启时运行，不建议使用，建议使用special_time</li>
+<li>special_time           特殊的时间范围，参数：reboot（重启时）,annually（每年）,monthly（每月）,weekly（每周）,daily（每天）,hourly（每小时）</li>
+<li>state                  指定状态，默认<code>prsent</code>添加定时任务，<code>absent</code>删除定时任务</li>
+<li>user                   以哪个用户的身份执行</li>
+<li>weekday                周 ( 0-6 for Sunday-Saturday, *, etc )</li>
+</ul>
+</li>
+<li>例子：<ul>
+<li>每天8点半执行cat &#x2F;etc&#x2F;hosts这个命令：ansible localhost -m cron -a “name&#x3D;test minute&#x3D;30 hour&#x3D;8 day&#x3D;* job&#x3D;’cat &#x2F;etc&#x2F;hosts’”</li>
+<li>删除test这个cronjob：ansible localhost -m cron -a “name&#x3D;test state&#x3D;absent”</li>
+<li>重启时rm -rf &#x2F;tmp命令： ansible test -m cron -a ‘name&#x3D;”test” special_time&#x3D;reboot job&#x3D;”rm -rf &#x2F;tmp”‘</li>
+</ul>
+</li>
+</ul>
+<h4 id="执行命令"><a href="#执行命令" class="headerlink" title="执行命令"></a>执行命令</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">ansible &lt;主机&gt; -m &lt;模块&gt; -a &lt;模块参数&gt;</span></span><br><span class="line">ansible &lt;主机&gt; -m shell -a &quot;cat /etc/hosts&quot;</span><br></pre></td></tr></table></figure>
+
+<h5 id="指定某些机器执行"><a href="#指定某些机器执行" class="headerlink" title="指定某些机器执行"></a>指定某些机器执行</h5><p>ansbile &lt;主机组&gt; -m &lt;模块&gt; -a &lt;参数&gt; –limit &lt;主机&gt;  指定执行主机<br>ansbile &lt;主机组&gt; -m &lt;模块&gt; -a &lt;参数&gt; –limit &lt;!主机&gt; 排除执行的主机<br>ansbile &lt;主机组&gt; -m &lt;模块&gt; -a &lt;参数&gt; –limit &lt;主机1：主机2&gt; 只在主机1和主机2中执行</p>
+<h5 id="一步一步的执行且确认"><a href="#一步一步的执行且确认" class="headerlink" title="一步一步的执行且确认"></a>一步一步的执行且确认</h5><p>在执行 剧本的时候加上 –step，每执行一个任务就询问一次</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ansible-playbook  -i inventories test.yaml --step</span><br></pre></td></tr></table></figure>
+
+<h4 id="playbook"><a href="#playbook" class="headerlink" title="playbook"></a>playbook</h4><blockquote>
+<p>剧本就是一系列ansible命令组合类似shell脚本和shell命令</p>
+</blockquote>
+<p>一个将内核日志输出到&#x2F;var&#x2F;log&#x2F;kern.log的剧本</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">all</span>                 <span class="comment"># 要执行的主机组</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">修改rsyslog配置文件</span> <span class="comment"># 任务名字</span></span><br><span class="line">    <span class="attr">tags:</span> <span class="string">rsyslog</span>            <span class="comment"># 任务标签</span></span><br><span class="line">    <span class="attr">lineinfile:</span>              <span class="comment"># 任务模块</span></span><br><span class="line">       <span class="attr">dest:</span> <span class="string">/etc/rsyslog.conf</span></span><br><span class="line">       <span class="attr">regexp:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item.regexp &#125;&#125;</span>&quot;</span></span><br><span class="line">       <span class="attr">line:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item.line &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span>              <span class="comment"># 循环执行</span></span><br><span class="line">     <span class="bullet">-</span> &#123; <span class="attr">regexp:</span> <span class="string">&#x27;^#kern&#x27;</span>,<span class="attr">line:</span> <span class="string">&#x27;kern.* /var/log/kern.log&#x27;</span> &#125;</span><br><span class="line">     <span class="bullet">-</span> &#123; <span class="attr">regexp:</span> <span class="string">&#x27;^#\$ModLoad imklog&#x27;</span>,<span class="attr">line:</span> <span class="string">&#x27;$ModLoad imklog&#x27;</span> &#125;</span><br><span class="line">     <span class="bullet">-</span> &#123; <span class="attr">regexp:</span> <span class="string">&#x27;^#\$ModLoad imjournal&#x27;</span>,<span class="attr">line:</span> <span class="string">&#x27;$ModLoad imjournal&#x27;</span> &#125;</span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">修改logrotate的syslog配置</span></span><br><span class="line">    <span class="attr">shell:</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">&#x27;1i\\/var\/log\/kern.log&#x27;</span> <span class="string">/etc/logrotate.d/syslog</span></span><br><span class="line">    <span class="attr">tags:</span> <span class="string">logrotate</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">重启rsyslog服务</span></span><br><span class="line">    <span class="attr">tags:</span> <span class="string">rsyslog</span></span><br><span class="line">    <span class="attr">systemd:</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">rsyslog</span></span><br><span class="line">      <span class="attr">state:</span> <span class="string">restarted</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">yes</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="tags"><a href="#tags" class="headerlink" title="tags"></a>tags</h5><blockquote>
+<p>标签可以灵活的选择执行那些task或其他的对象</p>
+</blockquote>
+<p>特殊的标签：</p>
+<ul>
+<li>always 当把标签设置为always即使使用–tags指定tags任务也会执行，可以使用–skip-tags always跳过</li>
+<li>never  和always相反即使用–tags指定也不会执行</li>
+<li>tagged 只执行有标签的任务</li>
+<li>untagged 只执行未打标签的含有always也会执行</li>
+<li>all 所有都执行不用指定</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">创建文件test1</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">test1</span></span><br><span class="line">      <span class="attr">file:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">/tmp/test1</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">touch</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">创建文件test2</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">always</span></span><br><span class="line">      <span class="attr">file:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">/tmp/test2</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">touch</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">创建文件test3</span></span><br><span class="line">      <span class="attr">file:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">/tmp/test3</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">touch</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h5><blockquote>
+<p>变量非常常用</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/tmp/</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">创建文件test1</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">test1</span></span><br><span class="line">      <span class="attr">file:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; path &#125;&#125;</span>test1&quot;</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">touch</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="DEBUG"><a href="#DEBUG" class="headerlink" title="DEBUG"></a>DEBUG</h6><blockquote>
+<p>调试打印</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/tmp/</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">创建文件test1</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">test1</span></span><br><span class="line">      <span class="attr">file:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; path &#125;&#125;</span>test1&quot;</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">touch</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">print</span> <span class="string">var</span></span><br><span class="line">      <span class="attr">debug:</span></span><br><span class="line">        <span class="attr">var:</span> <span class="string">path</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">msg</span></span><br><span class="line">      <span class="attr">debug:</span></span><br><span class="line">        <span class="attr">msg:</span> <span class="string">this</span> <span class="string">is</span> <span class="string">debug</span> <span class="string">info,The</span> <span class="string">test</span> <span class="string">file</span> <span class="string">has</span> <span class="string">been</span> <span class="string">touched</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="注册变量"><a href="#注册变量" class="headerlink" title="注册变量"></a>注册变量</h6><blockquote>
+<p>将模块运行的返回值进行赋值</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">test</span> <span class="string">shell</span></span><br><span class="line">    <span class="attr">shell:</span> <span class="string">&quot;cat /etc/hosts&quot;</span></span><br><span class="line">    <span class="attr">register:</span> <span class="string">testvar</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">shell</span> <span class="string">模块返回值</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">var:</span> <span class="string">testvar</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">指定shell模块的返回</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;testvar.stdout&#125;&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="交互"><a href="#交互" class="headerlink" title="交互"></a>交互</h6><blockquote>
+<p>命令行交互输入的变脸类似c语言的scan函数</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">vars_prompt:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;user&quot;</span></span><br><span class="line">      <span class="attr">prompt:</span> <span class="string">&quot;请选择帐号 \n</span></span><br><span class="line"><span class="string">      root \n</span></span><br><span class="line"><span class="string">      poweruser \n</span></span><br><span class="line"><span class="string">      test \n</span></span><br><span class="line"><span class="string">      &quot;</span></span><br><span class="line">      <span class="attr">private:</span> <span class="literal">no</span> <span class="comment"># 输入的字符显示出来</span></span><br><span class="line">      <span class="attr">default:</span> <span class="string">root</span> <span class="comment"># 默认值</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;passwd&quot;</span></span><br><span class="line">      <span class="attr">prompt:</span> <span class="string">&quot;请输入密码&quot;</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">   <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">输出变量</span></span><br><span class="line">     <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">你的帐号：&#123;&#123;user&#125;&#125;;你的密码：&#123;&#123;passwd&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="命令行传值"><a href="#命令行传值" class="headerlink" title="命令行传值"></a>命令行传值</h6><blockquote>
+<p>通过命令行输入变量的值</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">var2:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;通过命令行传值&quot;</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">var的值是：&#123;&#123;var&#125;&#125;;var2的值：</span> &#123;&#123;<span class="string">var2</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将上面的yaml保存为test.yaml然后执行 <code>ansible-playbook -i inventories test.yaml --extra-vars &quot;var=test&quot; -e &quot;var2=test2&quot;</code>,-e是–extra-vars的缩写，<code>命令行的值会覆盖默认值</code><br>还可以使用<code>@</code>传变量文件</p>
+<h6 id="主机-组-变量"><a href="#主机-组-变量" class="headerlink" title="主机(组)变量"></a>主机(组)变量</h6><blockquote>
+<p>为每个主机（组）设置的变量，当使用次主机时变量生效</p>
+</blockquote>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[test]</span></span><br><span class="line"></span><br><span class="line">localhost <span class="attr">hostvar1</span>=test_host_var hostvar2=host_var_test</span><br><span class="line"></span><br><span class="line"><span class="section">[test:vars]</span></span><br><span class="line"><span class="attr">groupvar</span>=testgroupvar</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;主机变量&quot;</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">hostvar1的值是：&#123;&#123;hostvar1&#125;&#125;;hostvar2的值：</span> &#123;&#123;<span class="string">hostvar2</span>&#125;&#125;</span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">&quot;主机组变量&quot;</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">test组的变量是：&#123;&#123;groupvar&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="set-fact定义变量"><a href="#set-fact定义变量" class="headerlink" title="set_fact定义变量"></a>set_fact定义变量</h6><blockquote>
+<p>通过set_fact模块配置变量</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">set_fact:</span></span><br><span class="line">      <span class="attr">testvasr:</span> <span class="string">testvas</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">打印值</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;testvasr&#125;&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="内置变量"><a href="#内置变量" class="headerlink" title="内置变量"></a>内置变量</h6><blockquote>
+<p>ansible有一些保留变量</p>
+</blockquote>
+<ul>
+<li>ansible_version</li>
+<li>hostvars</li>
+<li>inventory_hostname</li>
+<li>inventory_hostname_short</li>
+<li>play_hosts</li>
+<li>groups</li>
+<li>group_names</li>
+</ul>
+<h5 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h5><h6 id="with-items"><a href="#with-items" class="headerlink" title="with_items"></a>with_items</h6><blockquote>
+<p>以条目为单位循环with_items下的的元素</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">循环打印变量</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span></span><br><span class="line">     <span class="bullet">-</span> <span class="number">1</span></span><br><span class="line">     <span class="bullet">-</span> <span class="number">2</span></span><br><span class="line">     <span class="bullet">-</span> <span class="number">3</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">循环打印kv变量</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;k的值是：<span class="template-variable">&#123;&#123;item.k&#125;&#125;</span>:v的值是：<span class="template-variable">&#123;&#123;item.v&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span></span><br><span class="line">      <span class="bullet">-</span> &#123; <span class="attr">k:</span> <span class="number">1</span>, <span class="attr">v:</span> <span class="number">2</span> &#125;</span><br><span class="line">      <span class="bullet">-</span> &#123; <span class="attr">k:</span> <span class="number">3</span>, <span class="attr">v:</span> <span class="number">4</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="with-list"><a href="#with-list" class="headerlink" title="with_list"></a>with_list</h6><blockquote>
+<p>以list为单位循环元素,也即是一次性答应出一个list而不是list里面的元素</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">循环打印变量</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>]</span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">循环打印list</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>]</span><br></pre></td></tr></table></figure>
+
+<h6 id="with-flattened"><a href="#with-flattened" class="headerlink" title="with_flattened"></a>with_flattened</h6><blockquote>
+<p>和with_item很像将item一个元素一个元素的打印出来</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">循环打印item</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>,<span class="string">c</span>]</span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">循环打印list</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_list:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>,<span class="string">c</span>]</span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">循环打印flattened</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_flattened:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>,<span class="string">c</span>]</span><br></pre></td></tr></table></figure>
+
+<h6 id="with-together"><a href="#with-together" class="headerlink" title="with_together"></a>with_together</h6><blockquote>
+<p>将list的元素纵排打印</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">循环打印item</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>,<span class="string">c</span>]</span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">循环打印together</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_together:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>,<span class="string">c</span>]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h6 id="with-cartesian"><a href="#with-cartesian" class="headerlink" title="with_cartesian"></a>with_cartesian</h6><blockquote>
+<p>将list的元素交叉打印出来</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">循环打印with_cartesian</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_cartesian:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>,<span class="string">c</span>]</span><br></pre></td></tr></table></figure>
+
+<h6 id="with-indexed-items"><a href="#with-indexed-items" class="headerlink" title="with_indexed_items"></a>with_indexed_items</h6><blockquote>
+<p>将所有list变成一个大的list然后将这个大的list按顺序从0开始添加索引和值</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">循环打印with_indexed_items</span></span><br><span class="line">    <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;item&#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_indexed_items:</span></span><br><span class="line">      <span class="bullet">-</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br><span class="line">      <span class="bullet">-</span> [<span class="string">a</span>,<span class="string">b</span>,<span class="string">c</span>]</span><br></pre></td></tr></table></figure>
+
+<h6 id="with-sequence"><a href="#with-sequence" class="headerlink" title="with_sequence"></a>with_sequence</h6><blockquote>
+<p>类似golang序言的for循环，定义步长开始值，结束值</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">with_sequence</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_sequence:</span> <span class="string">start=1</span> <span class="string">end=10</span> <span class="string">stride=2</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="with-dict"><a href="#with-dict" class="headerlink" title="with_dict"></a>with_dict</h6><blockquote>
+<p>顾名思义是循环处理字典的</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">account:</span></span><br><span class="line">      <span class="attr">user:</span> <span class="string">root</span></span><br><span class="line">      <span class="attr">passwd:</span> <span class="number">123456</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">with_dict</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;键是：<span class="template-variable">&#123;&#123; item.key &#125;&#125;</span> ；值是：<span class="template-variable">&#123;&#123; item.value &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_dict:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;account&#125;&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="with-subelements"><a href="#with-subelements" class="headerlink" title="with_subelements"></a>with_subelements</h6><blockquote>
+<p>也是对字典镜像操作，制定的字段作为key把其他字段作为value</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">account:</span></span><br><span class="line">      <span class="attr">root:</span></span><br><span class="line">        <span class="attr">user:</span> <span class="string">root</span></span><br><span class="line">        <span class="attr">passwd:</span> <span class="number">123456</span></span><br><span class="line">        <span class="attr">open:</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">tmp</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">server</span></span><br><span class="line">      <span class="attr">test:</span></span><br><span class="line">        <span class="attr">user:</span> <span class="string">test</span></span><br><span class="line">        <span class="attr">passwd:</span> <span class="string">abc</span></span><br><span class="line">        <span class="attr">open:</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">hosts</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">log</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">with_sequence</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_subelements:</span> </span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;account&#125;&#125;</span>&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">open</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="with-file"><a href="#with-file" class="headerlink" title="with_file"></a>with_file</h6><blockquote>
+<p>按行读取一个文件的内容</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">with_file</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_file:</span> </span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/hosts</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="with-fileglob"><a href="#with-fileglob" class="headerlink" title="with_fileglob"></a>with_fileglob</h6><blockquote>
+<p>读取文件名字</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">with_fileglob</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_fileglob:</span> </span><br><span class="line">      <span class="bullet">-</span> <span class="string">/etc/*</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="判断"><a href="#判断" class="headerlink" title="判断"></a>判断</h5><h6 id="比较符"><a href="#比较符" class="headerlink" title="比较符"></a>比较符</h6><ul>
+<li>&#x3D;&#x3D; 相等</li>
+<li>!&#x3D; 不等</li>
+<li>&gt; 大于</li>
+<li>&lt;  小于</li>
+<li>&gt;&#x3D;小于等于</li>
+<li>&lt;&#x3D;大于等于</li>
+</ul>
+<h6 id="逻辑运算符"><a href="#逻辑运算符" class="headerlink" title="逻辑运算符"></a>逻辑运算符</h6><ul>
+<li>and 与</li>
+<li>or 或</li>
+<li>not 非</li>
+<li>() 组合</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name :</span> <span class="string">判断</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">with_items:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">1</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">2</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">3</span></span><br><span class="line">    <span class="attr">when:</span> <span class="string">item</span> <span class="string">&gt;</span> <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="文件判断"><a href="#文件判断" class="headerlink" title="文件判断"></a>文件判断</h6><ul>
+<li>is exists 如果文件存在则为真</li>
+<li>is not exists  如果文件不存在则为假</li>
+<li>not &lt;path&gt; is exists 和is not相同</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="comment">#gather_facts: false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">testpath:</span> <span class="string">/tmp/test</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">判断/tmp/test文件是否存在</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">是centos</span></span><br><span class="line">    <span class="attr">when:</span>  <span class="string">testpath</span> <span class="string">is</span> <span class="string">not</span> <span class="string">exists</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="变量判断"><a href="#变量判断" class="headerlink" title="变量判断"></a>变量判断</h6><ul>
+<li>is defined 定义则为真</li>
+<li>is undefined 没定义则为真</li>
+<li>is none 为空则为真</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="comment">#gather_facts: false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">testpath:</span> <span class="string">/tmp/test</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">判断testpath是否存在</span></span><br><span class="line">    <span class="attr">debug:</span> </span><br><span class="line">      <span class="attr">msg:</span> <span class="string">testpath文件存在</span></span><br><span class="line">    <span class="attr">when:</span> <span class="string">testpath</span> <span class="string">is</span> <span class="string">defined</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="执行结果判断"><a href="#执行结果判断" class="headerlink" title="执行结果判断"></a>执行结果判断</h6><ul>
+<li>success 或 succeeded 执行成功则返回真</li>
+<li>failure 或 failed    执行失败则返回真</li>
+<li>change 或 changed    执行状态为changed则返回真</li>
+<li>skip 或 skipped      没有满足条件，而被跳过执行时，则返回真</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="comment">#gather_facts: false</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">shell:</span> <span class="string">cat</span> <span class="string">/etc/hosts</span></span><br><span class="line">    <span class="attr">register:</span> <span class="string">ret</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;执行成功&quot;</span></span><br><span class="line">    <span class="attr">when:</span> <span class="string">ret</span> <span class="string">is</span> <span class="string">success</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="文件类型判断"><a href="#文件类型判断" class="headerlink" title="文件类型判断"></a>文件类型判断</h6><ul>
+<li>file 是文件则为真</li>
+<li>directory 是目录则为真</li>
+<li>link 软连接则为真</li>
+<li>mount 挂载点则为真</li>
+<li>exists 存在则为真</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="comment">#gather_facts: false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/etc/hosts</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; path &#125;&#125;</span> 是个文件&quot;</span> </span><br><span class="line">    <span class="attr">when:</span> <span class="string">path</span> <span class="string">is</span> <span class="string">file</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="字符串判断"><a href="#字符串判断" class="headerlink" title="字符串判断"></a>字符串判断</h6><ul>
+<li>lower 字符为小写则为真</li>
+<li>upper 字符为大写则为真</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="comment">#gather_facts: false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">TEST</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; path &#125;&#125;</span> 是大写&quot;</span> </span><br><span class="line">    <span class="attr">when:</span> <span class="string">path</span> <span class="string">is</span> <span class="string">upper</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="整除判断"><a href="#整除判断" class="headerlink" title="整除判断"></a>整除判断</h6><ul>
+<li>even  偶数为真</li>
+<li>odd  奇数为真</li>
+<li>divisibleby(num) 整除则为真</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">X:</span> <span class="number">5</span></span><br><span class="line">    <span class="attr">Y:</span> <span class="number">6</span></span><br><span class="line">    <span class="attr">Z:</span> <span class="number">66</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; X &#125;&#125;</span> 是奇数&quot;</span> </span><br><span class="line">    <span class="attr">when:</span> <span class="string">X</span> <span class="string">is</span> <span class="string">odd</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; Y &#125;&#125;</span> 是偶数&quot;</span> </span><br><span class="line">    <span class="attr">when:</span> <span class="string">Y</span> <span class="string">is</span> <span class="string">even</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; Z &#125;&#125;</span> 能被66整除&quot;</span> </span><br><span class="line">    <span class="attr">when:</span> <span class="string">Z</span> <span class="string">is</span> <span class="string">divisibleby(66)</span></span><br></pre></td></tr></table></figure>
+
+<h6 id="其他判断"><a href="#其他判断" class="headerlink" title="其他判断"></a>其他判断</h6><ul>
+<li>version 判断版本大小</li>
+<li>string 是字符则为真</li>
+<li>number 是数字则为真</li>
+<li>subset 一个list是另一个list的子集则为真</li>
+<li>superset 一个list<code>不</code>是另一个list的子集则为真</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">Versions:</span> <span class="number">1.2</span><span class="number">.4</span></span><br><span class="line">    <span class="attr">A:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">2</span></span><br><span class="line">    <span class="bullet">-</span> <span class="number">3</span></span><br><span class="line">    <span class="attr">B:</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]</span><br><span class="line">    <span class="attr">str:</span> <span class="string">test</span></span><br><span class="line">    <span class="attr">str2:</span> <span class="number">2</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; Versions &#125;&#125;</span> 版本是否大于1.2.1&quot;</span> </span><br><span class="line">    <span class="attr">when:</span> <span class="string">Versions</span> <span class="string">is</span> <span class="string">version(&quot;1.2.1&quot;,&quot;&gt;&quot;)</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">b是a的子集</span></span><br><span class="line">    <span class="attr">when:</span> <span class="string">B</span> <span class="string">is</span> <span class="string">subset(A)</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">str是字符串</span></span><br><span class="line">    <span class="attr">when:</span> <span class="string">str</span> <span class="string">is</span> <span class="string">string</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">str2</span> <span class="string">是数字</span></span><br><span class="line">    <span class="attr">when:</span> <span class="string">str2</span> <span class="string">is</span> <span class="string">number</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="handler"><a href="#handler" class="headerlink" title="handler"></a>handler</h5><blockquote>
+<p>在上面的例子中无论前面修改配置文件是否修改都会执行rsyslog重启，这样有些不妥 <br>handler的执行顺序与被notify的顺序无关</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 这样只有配置文件真正被修改了才会执行重启</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">修改rsyslog配置文件</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">rsyslog</span></span><br><span class="line">      <span class="attr">lineinfile:</span></span><br><span class="line">         <span class="attr">dest:</span> <span class="string">/etc/rsyslog.conf</span></span><br><span class="line">         <span class="attr">regexp:</span> <span class="string">^#kern</span></span><br><span class="line">         <span class="attr">line:</span> <span class="string">kern.*</span> <span class="string">/var/log/kern.log</span></span><br><span class="line">      <span class="attr">notify:</span>                <span class="comment"># 引用handlers</span></span><br><span class="line">        <span class="string">重启rsyslog服务</span></span><br><span class="line">  <span class="attr">handlers:</span>                  <span class="comment"># 和tasks同级</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">重启rsyslog服务</span></span><br><span class="line">      <span class="attr">systemd:</span></span><br><span class="line">         <span class="attr">name:</span> <span class="string">rsyslog</span></span><br><span class="line">         <span class="attr">state:</span> <span class="string">restarted</span></span><br><span class="line">         <span class="attr">enabled:</span> <span class="literal">yes</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>meta关键字可以让notify之后立刻执行handlers</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">修改rsyslog配置文件</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">rsyslog</span></span><br><span class="line">      <span class="attr">lineinfile:</span></span><br><span class="line">         <span class="attr">dest:</span> <span class="string">/etc/rsyslog.conf</span></span><br><span class="line">         <span class="attr">regexp:</span> <span class="string">^#kern</span></span><br><span class="line">         <span class="attr">line:</span> <span class="string">kern.*</span> <span class="string">/var/log/kern.log</span></span><br><span class="line">      <span class="attr">notify:</span></span><br><span class="line">        <span class="string">重启rsyslog服务</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">meta:</span> <span class="string">flush_handlers</span></span><br><span class="line">    </span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">查看配置文件状态</span></span><br><span class="line">      <span class="attr">shell:</span> <span class="string">cat</span> <span class="string">/etc/rsyslog.conf</span> <span class="string">|grep</span> <span class="string">&quot;kern.\*&quot;</span></span><br><span class="line">      <span class="attr">register:</span> <span class="string">ps</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">debug:</span> <span class="string">msg=&#123;&#123;</span> <span class="string">ps.stdout</span> <span class="string">&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">handlers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">重启rsyslog服务</span></span><br><span class="line">      <span class="attr">systemd:</span></span><br><span class="line">         <span class="attr">name:</span> <span class="string">rsyslog</span></span><br><span class="line">         <span class="attr">state:</span> <span class="string">restarted</span></span><br><span class="line">         <span class="attr">enabled:</span> <span class="literal">yes</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>listen handlers组</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">修改rsyslog配置文件</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">rsyslog</span></span><br><span class="line">      <span class="attr">lineinfile:</span></span><br><span class="line">         <span class="attr">dest:</span> <span class="string">/etc/rsyslog.conf</span></span><br><span class="line">         <span class="attr">regexp:</span> <span class="string">^#kern</span></span><br><span class="line">         <span class="attr">line:</span> <span class="string">kern.*</span> <span class="string">/var/log/kern.log</span></span><br><span class="line">      <span class="attr">notify:</span></span><br><span class="line">         <span class="string">handler</span> <span class="string">group1</span> <span class="comment"># 通知了handler group1</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">meta:</span> <span class="string">flush_handlers</span> </span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">查看配置文件状态</span></span><br><span class="line">      <span class="attr">shell:</span> <span class="string">cat</span> <span class="string">/etc/rsyslog.conf</span> <span class="string">|grep</span> <span class="string">&quot;kern.\*&quot;</span></span><br><span class="line">      <span class="attr">register:</span> <span class="string">ps</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">debug:</span> <span class="string">msg=&#123;&#123;</span> <span class="string">ps.stdout</span> <span class="string">&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">handlers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">重启rsyslog服务</span></span><br><span class="line">      <span class="attr">listen:</span> <span class="string">handler</span> <span class="string">group1</span></span><br><span class="line">      <span class="attr">systemd:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">rsyslog</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">restarted</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">yes</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">创建测试文件</span></span><br><span class="line">      <span class="attr">listen:</span> <span class="string">handler</span> <span class="string">group1</span></span><br><span class="line">      <span class="attr">file:</span></span><br><span class="line">        <span class="attr">path:</span> <span class="string">/tmp/test</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">touch</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="include-import-tasks"><a href="#include-import-tasks" class="headerlink" title="include &amp;&amp; import tasks"></a>include &amp;&amp; import tasks</h5><blockquote>
+<p>当task越来越多的时候如果都在一个文件不是很好管理，将一些相关性很强的写到一个文件然后引用另外的yaml文件 <br>import_tasks静态的，在playbook解析阶段将所有文件中的变量读取加载 <br>include_tasks动态则是在执行playbook之前才会加载自己变量</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">修改rsyslog配置文件</span></span><br><span class="line">      <span class="attr">tags:</span> <span class="string">rsyslog</span></span><br><span class="line">      <span class="attr">lineinfile:</span></span><br><span class="line">         <span class="attr">dest:</span> <span class="string">/etc/rsyslog.conf</span></span><br><span class="line">         <span class="attr">regexp:</span> <span class="string">^#kern</span></span><br><span class="line">         <span class="attr">line:</span> <span class="string">kern.*</span> <span class="string">/var/log/kern.log</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">查看配置文件状态</span></span><br><span class="line">      <span class="attr">import_tasks:</span> <span class="string">config.yaml</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="comment"># config.yaml</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">查看配置文件状态</span></span><br><span class="line">  <span class="attr">shell:</span> <span class="string">cat</span> <span class="string">/etc/rsyslog.conf</span> <span class="string">|grep</span> <span class="string">&quot;kern.\*&quot;</span></span><br><span class="line">  <span class="attr">register:</span> <span class="string">ps</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">debug:</span> <span class="string">msg=&#123;&#123;</span> <span class="string">ps.stdout</span> <span class="string">&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="模版"><a href="#模版" class="headerlink" title="模版"></a>模版</h5><blockquote>
+<p>有些时候应用的配置文件会根据部署的机器调整一些参数，但是大部分参数不需要调整额这个时候就需要模版来处理 <br>ansibel的template<code>模块</code>使用python的jinja2模版引擎</p>
+</blockquote>
+<ul>
+<li>参数:<ul>
+<li>owner  在目标主机上通过模版生成的文件的所属者</li>
+<li>group  在目标主机上通过模版生成的文件的所属组</li>
+<li>mode   在目标主机上通过模版生成的文件的权限</li>
+<li>force  目标主机上已经有了文件是否强制覆盖</li>
+<li>backup 目标主机上已经有了文件是否覆盖</li>
+</ul>
+</li>
+</ul>
+<h6 id="占位符"><a href="#占位符" class="headerlink" title="占位符"></a>占位符</h6><ul>
+<li>&lt;!–swig￼52–&gt; 表达式，比如变量、运算表达式、比较表达式等写法参考<a href="#%E6%AF%94%E8%BE%83%E7%AC%A6">比较符</a></li>
+<li>&lt;!–swig￼53–&gt; 控制语句,如if控制结构，for循环控制结构</li>
+<li>注释，模板文件被渲染后，注释不会包含在最终生成的文件中</li>
+</ul>
+<h6 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h6><p>模版文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">基本变量替换</span><br><span class="line">&#123;&#123; testvar &#125;&#125;</span><br><span class="line"></span><br><span class="line">逻辑计算</span><br><span class="line"></span><br><span class="line">&#123;&#123; number &gt; 1 &#125;&#125;</span><br><span class="line"></span><br><span class="line">&#123;&#123; number is defined &#125;&#125;</span><br><span class="line"></span><br><span class="line">&#123;&#123; &#x27;/tmp&#x27; is exists  &#125;&#125;</span><br><span class="line"></span><br><span class="line">数据结构取值</span><br><span class="line">&#123;&#123; account.user &#125;&#125;</span><br><span class="line">&#123;&#123; numbers.1 &#125;&#125;</span><br><span class="line"></span><br><span class="line">&#123;# 这个是注释 #&#125;</span><br><span class="line">&#123;# </span><br><span class="line">这个是多行注释，</span><br><span class="line">不会在生成的末班中显示</span><br><span class="line">#&#125;</span><br><span class="line"></span><br><span class="line">判断</span><br><span class="line">&#123;% if numbers.1&gt;1 %&#125;</span><br><span class="line">嘿嘿嘿</span><br><span class="line">&#123;% endif %&#125;</span><br><span class="line"></span><br><span class="line">循环</span><br><span class="line">&#123;% for i in [3,14,15,9,26] -%&#125;</span><br><span class="line">&#123;&#123; i &#125;&#125; &#123;&#123;&#x27; &#x27;&#125;&#125;</span><br><span class="line">&#123;%- endfor %&#125;</span><br></pre></td></tr></table></figure>
+
+<p>playbook如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">testvar:</span> <span class="string">footest</span></span><br><span class="line">    <span class="attr">number:</span> <span class="number">3</span></span><br><span class="line">    <span class="attr">account:</span></span><br><span class="line">        <span class="attr">user:</span> <span class="string">root</span></span><br><span class="line">        <span class="attr">passwd:</span> <span class="number">123456</span></span><br><span class="line">    <span class="attr">numbers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">1</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">2</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;test&quot;</span> </span><br><span class="line">  <span class="bullet">-</span> <span class="attr">template:</span></span><br><span class="line">      <span class="attr">src:</span> <span class="string">test.j2</span></span><br><span class="line">      <span class="attr">dest:</span> <span class="string">/tmp/test</span></span><br></pre></td></tr></table></figure>
+
+<p>执行 <code>ansible-playbook  -i inventories test.yaml</code></p>
+<h5 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h5><blockquote>
+<p>当任务越来越多时一个文件放这么多有些不一样配合include和import分门别类的存放ansible资源文件</p>
+</blockquote>
+<h6 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h6><blockquote>
+<p>每个目录下都有an.yaml用语导入此目录其他的yaml</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── inventories</span><br><span class="line">├── roles</span><br><span class="line">│   ├── defaults</span><br><span class="line">│   ├── files       # 文件的目录</span><br><span class="line">│   ├── handlers    # handler目录</span><br><span class="line">│   ├── meta        # 特殊设定及其依赖关系</span><br><span class="line">│   ├── tasks       # 存放task的目录</span><br><span class="line">│   ├── templates   # 存放模版</span><br><span class="line">│   └── vars        # 存放变量</span><br><span class="line">└── test.yaml       # 剧本文件</span><br></pre></td></tr></table></figure>
+
+<h6 id="角色例子"><a href="#角色例子" class="headerlink" title="角色例子"></a>角色例子</h6><p>在和roles文件同级目录创建剧本</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">roles:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">role:</span> <span class="string">roles</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在roles文件夹的task中创建task</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">debug:</span> </span><br><span class="line">    <span class="attr">msg:</span> <span class="string">hahaha</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>运行<code>ansible-playbook  -i inventories test.yaml</code></p>
+<h5 id="过滤器"><a href="#过滤器" class="headerlink" title="过滤器"></a>过滤器</h5><blockquote>
+<p>对一些数据进行处理</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">testvar:</span> <span class="string">haha</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">debug:</span></span><br><span class="line">      <span class="attr">msg:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; testvar | upper &#125;&#125;</span>&quot;</span>    <span class="comment"># 将全部字母转换成大写</span></span><br></pre></td></tr></table></figure>
+
+<p>基本格式就像上面一样其他功能只需要将<code>upper</code>替换为其他的字段即可</p>
+<p>常用过滤器</p>
+<ul>
+<li>upper 字符转换为大写</li>
+<li>lower 字符转换为小写</li>
+<li>indent 设置缩进</li>
+<li>json_query 将字符串作为json</li>
+<li>dirname 路径字符串的路径名</li>
+<li>hash() 进行hash处理</li>
+<li>password_hash 密码专用的hash</li>
+<li>checksum  计算md5</li>
+<li>ipaddr() 需要安装netaddr，针对ip地址处理</li>
+</ul>
+<h5 id="lookup"><a href="#lookup" class="headerlink" title="lookup"></a>lookup</h5><blockquote>
+<p>上面的过滤器和lookup其实都是插件具体介绍:<a target="_blank" rel="noopener" href="https://docs.ansible.com/ansible/latest/plugins/plugins.html">https://docs.ansible.com/ansible/latest/plugins/plugins.html</a></p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">渲染模版到变量</span></span><br><span class="line">  <span class="attr">set_fact:</span></span><br><span class="line">    <span class="attr">yaml:</span> <span class="string">&#x27;<span class="template-variable">&#123;&#123; lookup(&quot;template&quot;, &quot;test.j2&quot;) &#125;&#125;</span>&#x27;</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">读取文件到变量</span></span><br><span class="line">  <span class="attr">set_fact:</span></span><br><span class="line">    <span class="attr">file:</span> <span class="string">&#x27;<span class="template-variable">&#123;&#123; lookup(&quot;file&quot;, &quot;/etc/hosts&quot;) &#125;&#125;</span>&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="在本地-只执行一次"><a href="#在本地-只执行一次" class="headerlink" title="在本地&amp;&amp;只执行一次"></a>在本地&amp;&amp;只执行一次</h5><blockquote>
+<p>有些时候一些剧本在本地执行，就像本地执行shell一样,由于在本地执行所以需要搭配<code>run_once</code></p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">localhost</span></span><br><span class="line">  <span class="attr">connection:</span> <span class="string">local</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">run_once:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">no</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">     <span class="bullet">-</span> <span class="attr">shell:</span> <span class="string">echo</span> <span class="string">&quot;test&quot;</span> <span class="string">&gt;</span> <span class="string">/tmp/test</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="并行执行"><a href="#并行执行" class="headerlink" title="并行执行"></a>并行执行</h5><blockquote>
+<p>在机器比较多时一台一台执行太慢<code>serial</code>可以指定并行执行的数量</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">test</span></span><br><span class="line">  <span class="attr">remote_user:</span> <span class="string">root</span></span><br><span class="line">  <span class="attr">serial:</span> <span class="number">1</span></span><br><span class="line">  <span class="comment">#serial: 20% 按百分比</span></span><br><span class="line">  <span class="attr">gather_facts:</span> <span class="literal">no</span></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">     <span class="bullet">-</span> <span class="attr">shell:</span> <span class="string">echo</span> <span class="string">&quot;test&quot;</span> <span class="string">&gt;</span> <span class="string">/tmp/test</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="http://www.zsythink.net/archives/category/%e8%bf%90%e7%bb%b4%e7%9b%b8%e5%85%b3/ansible/">http://www.zsythink.net/archives/category/%e8%bf%90%e7%bb%b4%e7%9b%b8%e5%85%b3/ansible/</a><br><a target="_blank" rel="noopener" href="https://docs.ansible.com/">https://docs.ansible.com/</a><br><a target="_blank" rel="noopener" href="http://www.ansible.com.cn/">http://www.ansible.com.cn/</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ansible/" rel="tag"># ansible</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/12/14/logrotate/" rel="prev" title="logrotate">
+                  <i class="fa fa-angle-left"></i> logrotate
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/19/go%E8%B5%84%E6%BA%90%E5%86%85%E5%B5%8Cembed/" rel="next" title="go资源内嵌embed">
+                  go资源内嵌embed <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

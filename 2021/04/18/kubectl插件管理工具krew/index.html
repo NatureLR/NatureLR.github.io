@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="krew是一个kubectl的插件管理系统">
 <meta property="og:type" content="article">
@@ -246,12 +246,20 @@
     <div class="post-body" itemprop="articleBody"><p>krew是一个kubectl的插件管理系统</p>
 <span id="more"></span>
 
-<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">(</span><br><span class="line">  set -x; cd &quot;$(mktemp -d)&quot; &amp;&amp;</span><br><span class="line">  OS=&quot;$(uname | tr &#x27;[:upper:]&#x27; &#x27;[:lower:]&#x27;)&quot; &amp;&amp;</span><br><span class="line">  ARCH=&quot;$(uname -m | sed -e &#x27;s/x86_64/amd64/&#x27; -e &#x27;s/\(arm\)\(64\)\?.*/\1\2/&#x27; -e &#x27;s/aarch64$/arm64/&#x27;)&quot; &amp;&amp;</span><br><span class="line">  curl -fsSLO &quot;https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz&quot; &amp;&amp;</span><br><span class="line">  tar zxvf krew.tar.gz &amp;&amp;</span><br><span class="line">  KREW=./krew-&quot;$&#123;OS&#125;_$&#123;ARCH&#125;&quot; &amp;&amp;</span><br><span class="line">  &quot;$KREW&quot; install krew</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">(</span>
+  <span class="token builtin class-name">set</span> -x<span class="token punctuation">;</span> <span class="token builtin class-name">cd</span> <span class="token string">"<span class="token variable"><span class="token variable">$(</span>mktemp <span class="token parameter variable">-d</span><span class="token variable">)</span></span>"</span> <span class="token operator">&amp;&amp;</span>
+  <span class="token assign-left variable">OS</span><span class="token operator">=</span><span class="token string">"<span class="token variable"><span class="token variable">$(</span><span class="token function">uname</span> <span class="token operator">|</span> <span class="token function">tr</span> <span class="token string">'[:upper:]'</span> <span class="token string">'[:lower:]'</span><span class="token variable">)</span></span>"</span> <span class="token operator">&amp;&amp;</span>
+  <span class="token assign-left variable">ARCH</span><span class="token operator">=</span><span class="token string">"<span class="token variable"><span class="token variable">$(</span><span class="token function">uname</span> <span class="token parameter variable">-m</span> <span class="token operator">|</span> <span class="token function">sed</span> <span class="token parameter variable">-e</span> <span class="token string">'s/x86_64/amd64/'</span> <span class="token parameter variable">-e</span> <span class="token string">'s/\(arm\)\(64\)\?.*/\1\2/'</span> <span class="token parameter variable">-e</span> <span class="token string">'s/aarch64$/arm64/'</span><span class="token variable">)</span></span>"</span> <span class="token operator">&amp;&amp;</span>
+  <span class="token function">curl</span> <span class="token parameter variable">-fsSLO</span> <span class="token string">"https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz"</span> <span class="token operator">&amp;&amp;</span>
+  <span class="token function">tar</span> zxvf krew.tar.gz <span class="token operator">&amp;&amp;</span>
+  <span class="token assign-left variable">KREW</span><span class="token operator">=</span>./krew-<span class="token string">"<span class="token variable">$&#123;OS&#125;</span>_<span class="token variable">$&#123;ARCH&#125;</span>"</span> <span class="token operator">&amp;&amp;</span>
+  <span class="token string">"<span class="token variable">$KREW</span>"</span> <span class="token function">install</span> krew
+<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <blockquote>
 <p>添加环境变量</p>
 </blockquote>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=&quot;$&#123;KREW_ROOT:-$HOME/.krew&#125;/bin:$PATH&quot;</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"<span class="token variable">$&#123;KREW_ROOT<span class="token operator">:-</span>$HOME<span class="token operator">/</span>.krew&#125;</span>/bin:<span class="token environment constant">$PATH</span>"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <h5 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h5><ul>
 <li><p>kubectl krew install xxx 安装插件</p>
@@ -346,7 +354,7 @@
 <script src="/js/third-party/search/local-search.js"></script>
 
 
-  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.7.0/mermaid.min.js","integrity":"sha256-TtLOdUA8mstPoO6sGvHIGx2ceXrrX4KgIItO06XOn8A="}}</script>
   <script src="/js/third-party/tags/mermaid.js"></script>
 
 

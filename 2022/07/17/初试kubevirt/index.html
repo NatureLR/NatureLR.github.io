@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="kubevirt是一个可以在k8s上管理虚拟机的应用">
 <meta property="og:type" content="article">
@@ -256,124 +256,320 @@
 <h3 id="kubevirt"><a href="#kubevirt" class="headerlink" title="kubevirt"></a>kubevirt</h3><blockquote>
 <p>更新也是一样的</p>
 </blockquote>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># 定义版本</span><br><span class="line">export RELEASE=v0.51.0</span><br><span class="line"></span><br><span class="line"># 部署operator</span><br><span class="line">kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/$RELEASE/kubevirt-operator.yaml</span><br><span class="line"></span><br><span class="line"># 部署kubevirt的cr</span><br><span class="line">kubectl apply -f https://github.com/kubevirt/kubevirt/releases/download/$RELEASE/kubevirt-cr.yaml</span><br><span class="line"></span><br><span class="line"># 查看状态</span><br><span class="line">kubectl -n kubevirt wait kv kubevirt --for condition=Available</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-sehll" data-language="sehll"><code class="language-sehll"># 定义版本
+export RELEASE&#x3D;v0.51.0
+
+# 部署operator
+kubectl apply -f https:&#x2F;&#x2F;github.com&#x2F;kubevirt&#x2F;kubevirt&#x2F;releases&#x2F;download&#x2F;$RELEASE&#x2F;kubevirt-operator.yaml
+
+# 部署kubevirt的cr
+kubectl apply -f https:&#x2F;&#x2F;github.com&#x2F;kubevirt&#x2F;kubevirt&#x2F;releases&#x2F;download&#x2F;$RELEASE&#x2F;kubevirt-cr.yaml
+
+# 查看状态
+kubectl -n kubevirt wait kv kubevirt --for condition&#x3D;Available<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>下面的yaml增加了热迁移特性且调整副本数为1</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF | kubectl apply -f -</span><br><span class="line">apiVersion: kubevirt.io/v1</span><br><span class="line">kind: KubeVirt</span><br><span class="line">metadata:</span><br><span class="line">  name: kubevirt</span><br><span class="line">  namespace: kubevirt</span><br><span class="line">spec:</span><br><span class="line">  certificateRotateStrategy: &#123;&#125;</span><br><span class="line">  configuration:</span><br><span class="line">    developerConfiguration:</span><br><span class="line">      featureGates: </span><br><span class="line">      - LiveMigration # 热迁移特性</span><br><span class="line">  customizeComponents: &#123;&#125;</span><br><span class="line">  imagePullPolicy: IfNotPresent</span><br><span class="line">  infra:</span><br><span class="line">    replicas: 1 # api副本数调整为1，使用默认的2</span><br><span class="line">  workloadUpdateStrategy: &#123;&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">|</span> kubectl apply <span class="token parameter variable">-f</span> -</span>
+apiVersion: kubevirt.io/v1
+kind: KubeVirt
+metadata:
+  name: kubevirt
+  namespace: kubevirt
+spec:
+  certificateRotateStrategy: &#123;&#125;
+  configuration:
+    developerConfiguration:
+      featureGates: 
+      - LiveMigration # 热迁移特性
+  customizeComponents: &#123;&#125;
+  imagePullPolicy: IfNotPresent
+  infra:
+    replicas: 1 # api副本数调整为1，使用默认的2
+  workloadUpdateStrategy: &#123;&#125;
+EOF</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <blockquote>
 <p>如果是在虚拟机中需要打开嵌套虚拟化,如果没法打开就使用软件仿真</p>
 </blockquote>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl create configmap kubevirt-config -n kubevirt --from-literal debug.useEmulation=true</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-shlle" data-language="shlle"><code class="language-shlle">kubectl create configmap kubevirt-config -n kubevirt --from-literal debug.useEmulation&#x3D;true<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
-<h3 id="kubectl插件"><a href="#kubectl插件" class="headerlink" title="kubectl插件"></a>kubectl插件</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl krew install virt</span><br></pre></td></tr></table></figure>
+<h3 id="kubectl插件"><a href="#kubectl插件" class="headerlink" title="kubectl插件"></a>kubectl插件</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kubectl krew <span class="token function">install</span> virt<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
-<h3 id="virtctl命令行工具"><a href="#virtctl命令行工具" class="headerlink" title="virtctl命令行工具"></a>virtctl命令行工具</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">export VERSION=$(curl -s https://api.github.com/repos/kubevirt/kubevirt/releases | grep tag_name | grep -v -- &#x27;-rc&#x27; | sort -r | head -1 | awk -F&#x27;: &#x27; &#x27;&#123;print $2&#125;&#x27; | sed &#x27;s/,//&#x27; | xargs)</span><br><span class="line">export ARCH=$(uname -s | tr A-Z a-z)-$(uname -m | sed &#x27;s/x86_64/amd64/&#x27;) || windows-amd64.exe</span><br><span class="line">echo $&#123;ARCH&#125;</span><br><span class="line"></span><br><span class="line">curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/$&#123;VERSION&#125;/virtctl-$&#123;VERSION&#125;-$&#123;ARCH&#125;</span><br><span class="line">chmod +x virtctl</span><br><span class="line">sudo install virtctl /usr/local/bin</span><br></pre></td></tr></table></figure>
+<h3 id="virtctl命令行工具"><a href="#virtctl命令行工具" class="headerlink" title="virtctl命令行工具"></a>virtctl命令行工具</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">VERSION</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> https://api.github.com/repos/kubevirt/kubevirt/releases <span class="token operator">|</span> <span class="token function">grep</span> tag_name <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-v</span> -- <span class="token string">'-rc'</span> <span class="token operator">|</span> <span class="token function">sort</span> <span class="token parameter variable">-r</span> <span class="token operator">|</span> <span class="token function">head</span> <span class="token parameter variable">-1</span> <span class="token operator">|</span> <span class="token function">awk</span> -F<span class="token string">': '</span> <span class="token string">'&#123;print $2&#125;'</span> <span class="token operator">|</span> <span class="token function">sed</span> <span class="token string">'s/,//'</span> <span class="token operator">|</span> <span class="token function">xargs</span><span class="token variable">)</span></span>
+<span class="token builtin class-name">export</span> <span class="token assign-left variable">ARCH</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">uname</span> <span class="token parameter variable">-s</span> <span class="token operator">|</span> <span class="token function">tr</span> A-Z a-z<span class="token variable">)</span></span>-<span class="token variable"><span class="token variable">$(</span><span class="token function">uname</span> <span class="token parameter variable">-m</span> <span class="token operator">|</span> <span class="token function">sed</span> <span class="token string">'s/x86_64/amd64/'</span><span class="token variable">)</span></span> <span class="token operator">||</span> windows-amd64.exe
+<span class="token builtin class-name">echo</span> <span class="token variable">$&#123;ARCH&#125;</span>
+
+<span class="token function">curl</span> <span class="token parameter variable">-L</span> <span class="token parameter variable">-o</span> virtctl https://github.com/kubevirt/kubevirt/releases/download/<span class="token variable">$&#123;VERSION&#125;</span>/virtctl-<span class="token variable">$&#123;VERSION&#125;</span>-<span class="token variable">$&#123;ARCH&#125;</span>
+<span class="token function">chmod</span> +x virtctl
+<span class="token function">sudo</span> <span class="token function">install</span> virtctl /usr/local/bin<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h3><div class="note warning"><p>卸载有顺序先删除自动以资源,再删除oper，强制删除ns会导致ns处于Terminating状态</p>
 </div>
 
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">export RELEASE=v0.54.0</span><br><span class="line">kubectl delete -n kubevirt kubevirt kubevirt --wait=true # --wait=true should anyway be default</span><br><span class="line">kubectl delete apiservices v1alpha3.subresources.kubevirt.io # this needs to be deleted to avoid stuck terminating namespaces</span><br><span class="line">kubectl delete mutatingwebhookconfigurations virt-api-mutator # not blocking but would be left over</span><br><span class="line">kubectl delete validatingwebhookconfigurations virt-api-validator # not blocking but would be left over</span><br><span class="line">kubectl delete -f https://github.com/kubevirt/kubevirt/releases/download/$&#123;RELEASE&#125;/kubevirt-operator.yaml --wait=false</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">RELEASE</span><span class="token operator">=</span>v0.54.0
+kubectl delete <span class="token parameter variable">-n</span> kubevirt kubevirt kubevirt <span class="token parameter variable">--wait</span><span class="token operator">=</span>true <span class="token comment"># --wait=true should anyway be default</span>
+kubectl delete apiservices v1alpha3.subresources.kubevirt.io <span class="token comment"># this needs to be deleted to avoid stuck terminating namespaces</span>
+kubectl delete mutatingwebhookconfigurations virt-api-mutator <span class="token comment"># not blocking but would be left over</span>
+kubectl delete validatingwebhookconfigurations virt-api-validator <span class="token comment"># not blocking but would be left over</span>
+kubectl delete <span class="token parameter variable">-f</span> https://github.com/kubevirt/kubevirt/releases/download/<span class="token variable">$&#123;RELEASE&#125;</span>/kubevirt-operator.yaml <span class="token parameter variable">--wait</span><span class="token operator">=</span>false<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="管理虚拟机"><a href="#管理虚拟机" class="headerlink" title="管理虚拟机"></a>管理虚拟机</h3><ul>
 <li>创建虚拟机</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f https://kubevirt.io/labs/manifests/vm.yaml</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kubectl apply <span class="token parameter variable">-f</span> https://kubevirt.io/labs/manifests/vm.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <ul>
 <li>查看虚拟机状态</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">k get vms                                                  </span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">NAME     AGE   STATUS    READY</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">testvm   7s    Stopped   False</span></span><br><span class="line"></span><br><span class="line">k get vmi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">NAME     AGE     PHASE     IP            NODENAME         READY</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">testvm   6h16m   Running   10.244.1.44   192.168.32.133   True</span></span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">k get vms                                                  
+<span class="token comment"># NAME     AGE   STATUS    READY</span>
+<span class="token comment"># testvm   7s    Stopped   False</span>
+
+k get vmi
+<span class="token comment">#NAME     AGE     PHASE     IP            NODENAME         READY</span>
+<span class="token comment">#testvm   6h16m   Running   10.244.1.44   192.168.32.133   True</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <ul>
 <li>启动虚拟机</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virtctl start testvm</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">virtctl start testvm<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <ul>
 <li>停止虚拟机</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virtctl stop testvm</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">virtctl stop testvm<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <ul>
 <li>登录虚拟机</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">virtctl console testvm</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">virtctl console testvm<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <ul>
 <li>删除虚拟机</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl delete vm testvm</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kubectl delete vm testvm<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <h2 id="cdi"><a href="#cdi" class="headerlink" title="cdi"></a>cdi</h2><blockquote>
 <p>导入镜像创建虚拟机，使用pvc提供虚拟机磁盘</p>
 </blockquote>
 <p>CDI 支持 qemu 支持的raw和qcow2 ISO 可以使用gz或xz格式压缩图像</p>
-<h3 id="安装cdi"><a href="#安装cdi" class="headerlink" title="安装cdi"></a>安装cdi</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export VERSION=$(curl -s https://github.com/kubevirt/containerized-data-importer/releases/latest | grep -o &quot;v[0-9]\.[0-9]*\.[0-9]*&quot;)</span><br><span class="line">kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/$VERSION/cdi-operator.yaml</span><br><span class="line">kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/$VERSION/cdi-cr.yaml</span><br></pre></td></tr></table></figure>
+<h3 id="安装cdi"><a href="#安装cdi" class="headerlink" title="安装cdi"></a>安装cdi</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">VERSION</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">curl</span> <span class="token parameter variable">-s</span> https://github.com/kubevirt/containerized-data-importer/releases/latest <span class="token operator">|</span> <span class="token function">grep</span> <span class="token parameter variable">-o</span> <span class="token string">"v[0-9]\.[0-9]*\.[0-9]*"</span><span class="token variable">)</span></span>
+kubectl apply <span class="token parameter variable">-f</span> https://github.com/kubevirt/containerized-data-importer/releases/download/<span class="token variable">$VERSION</span>/cdi-operator.yaml
+kubectl apply <span class="token parameter variable">-f</span> https://github.com/kubevirt/containerized-data-importer/releases/download/<span class="token variable">$VERSION</span>/cdi-cr.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 
 <h3 id="创建磁盘持久卷-dv"><a href="#创建磁盘持久卷-dv" class="headerlink" title="创建磁盘持久卷(dv)"></a>创建磁盘持久卷(dv)</h3><p>dv datavolumes缩写，实际上是经过cdi处理之后的放在pvc的.img文件</p>
 <ul>
 <li>pvc自动获取，从连接下载自动解压到指定的pvc中</li>
 <li>手动上传，使用<code>virtctl</code>工具上传到pvc中</li>
 </ul>
-<h4 id="pvc自动拉取"><a href="#pvc自动拉取" class="headerlink" title="pvc自动拉取"></a>pvc自动拉取</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF &gt; pvc_fedora.yml</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: &quot;fedora&quot;</span><br><span class="line">  labels:</span><br><span class="line">    app: containerized-data-importer</span><br><span class="line">  annotations:</span><br><span class="line">    cdi.kubevirt.io/storage.import.endpoint: &quot;https://download.fedoraproject.org/pub/fedora/linux/releases/33/Cloud/x86_64/images/Fedora-Cloud-Base-33-1.2.x86_64.raw.xz&quot; # 这个国内很慢建议且有时候会404,建议手动下载下来放到本地web服务上</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">  - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 5Gi</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">kubectl apply -f pvc_fedora.yaml</span><br></pre></td></tr></table></figure>
+<h4 id="pvc自动拉取"><a href="#pvc自动拉取" class="headerlink" title="pvc自动拉取"></a>pvc自动拉取</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">></span> pvc_fedora.yml</span>
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "fedora"
+  labels:
+    app: containerized-data-importer
+  annotations:
+    cdi.kubevirt.io/storage.import.endpoint: "https://download.fedoraproject.org/pub/fedora/linux/releases/33/Cloud/x86_64/images/Fedora-Cloud-Base-33-1.2.x86_64.raw.xz" # 这个国内很慢建议且有时候会404,建议手动下载下来放到本地web服务上
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+EOF</span>
+
+kubectl apply <span class="token parameter variable">-f</span> pvc_fedora.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>这个时候会有创建导入到pvc的pod</p>
 <h4 id="手动上传镜像"><a href="#手动上传镜像" class="headerlink" title="手动上传镜像"></a>手动上传镜像</h4><div class="note warning"><p>192.168.32.132:31937替换为实际的nodeport地址</p>
 </div>
 
 <h5 id="访问cdi-uploadproxy"><a href="#访问cdi-uploadproxy" class="headerlink" title="访问cdi-uploadproxy"></a>访问cdi-uploadproxy</h5><p>这里使用nodeport</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF | kubectl apply -f -</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: cdi-uploadproxy-nodeport</span><br><span class="line">  namespace: cdi</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - port: 443</span><br><span class="line">    protocol: TCP</span><br><span class="line">    targetPort: 8443</span><br><span class="line">  selector:</span><br><span class="line">    cdi.kubevirt.io: cdi-uploadproxy</span><br><span class="line">  sessionAffinity: None</span><br><span class="line">  type: NodePort</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">|</span> kubectl apply <span class="token parameter variable">-f</span> -</span>
+apiVersion: v1
+kind: Service
+metadata:
+  name: cdi-uploadproxy-nodeport
+  namespace: cdi
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    cdi.kubevirt.io: cdi-uploadproxy
+  sessionAffinity: None
+  type: NodePort
+EOF</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h5 id="上传"><a href="#上传" class="headerlink" title="上传"></a>上传</h5><p>由于证书的问题会导致上传失败，有2种方法来解决证书问题</p>
 <h6 id="使用hosts"><a href="#使用hosts" class="headerlink" title="使用hosts"></a>使用hosts</h6><ul>
 <li>获取信任域名</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">echo | openssl s_client -showcerts -connect  192.168.32.132:31937 2&gt;/dev/null \</span><br><span class="line">     | openssl x509 -inform pem -noout -text \</span><br><span class="line">     | sed -n -e &#x27;/Subject.*CN/p&#x27; -e &#x27;/Subject Alternative/&#123;N;p&#125;&#x27;</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token operator">|</span> openssl s_client <span class="token parameter variable">-showcerts</span> <span class="token parameter variable">-connect</span>  <span class="token number">192.168</span>.32.132:31937 <span class="token operator"><span class="token file-descriptor important">2</span>></span>/dev/null <span class="token punctuation">\</span>
+     <span class="token operator">|</span> openssl x509 <span class="token parameter variable">-inform</span> pem <span class="token parameter variable">-noout</span> <span class="token parameter variable">-text</span> <span class="token punctuation">\</span>
+     <span class="token operator">|</span> <span class="token function">sed</span> <span class="token parameter variable">-n</span> <span class="token parameter variable">-e</span> <span class="token string">'/Subject.*CN/p'</span> <span class="token parameter variable">-e</span> <span class="token string">'/Subject Alternative/&#123;N;p&#125;'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 
 <p>输出</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Subject: CN=cdi-uploadproxy</span><br><span class="line">    X509v3 Subject Alternative Name:</span><br><span class="line">        DNS:cdi-uploadproxy, DNS:cdi-uploadproxy.cdi, DNS:cdi-uploadproxy.cdi.svc</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">Subject: CN=cdi-uploadproxy
+    X509v3 Subject Alternative Name:
+        DNS:cdi-uploadproxy, DNS:cdi-uploadproxy.cdi, DNS:cdi-uploadproxy.cdi.svc<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 
 <p>其中<code>Subject</code>就是讲作为认证的域名</p>
 <ul>
 <li>组合成hosts条目</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;192.168.32.132  cdi-uploadproxy&quot; &gt;&gt; /etc/hosts</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"192.168.32.132  cdi-uploadproxy"</span> <span class="token operator">>></span> /etc/hosts<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <ul>
 <li>上传</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">virtctl image-upload dv dv-test</span><br><span class="line">    --size=5Gi \</span><br><span class="line">    --image-path=./Fedora-Cloud-Base-33-1.2.x86_64.raw.xz \</span><br><span class="line">    --uploadproxy-url=https://cdi-uploadproxy:31937 \</span><br><span class="line">    --insecure # 忽略证书错误</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">virtctl image-upload dv dv-test
+    <span class="token parameter variable">--size</span><span class="token operator">=</span>5Gi <span class="token punctuation">\</span>
+    --image-path<span class="token operator">=</span>./Fedora-Cloud-Base-33-1.2.x86_64.raw.xz <span class="token punctuation">\</span>
+    --uploadproxy-url<span class="token operator">=</span>https://cdi-uploadproxy:31937 <span class="token punctuation">\</span>
+    <span class="token parameter variable">--insecure</span> <span class="token comment"># 忽略证书错误</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h6 id="信任证书"><a href="#信任证书" class="headerlink" title="信任证书"></a>信任证书</h6><ul>
 <li>导出证书</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl get secret -n cdi cdi-uploadproxy-server-cert \</span><br><span class="line">  -o jsonpath=&quot;&#123;.data[&#x27;tls\.crt&#x27;]&#125;&quot; \</span><br><span class="line">  | base64 -d &gt; cdi-uploadproxy-server-cert.crt</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kubectl get secret <span class="token parameter variable">-n</span> cdi cdi-uploadproxy-server-cert <span class="token punctuation">\</span>
+  <span class="token parameter variable">-o</span> <span class="token assign-left variable">jsonpath</span><span class="token operator">=</span><span class="token string">"&#123;.data['tls\.crt']&#125;"</span> <span class="token punctuation">\</span>
+  <span class="token operator">|</span> base64 <span class="token parameter variable">-d</span> <span class="token operator">></span> cdi-uploadproxy-server-cert.crt<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 
 <ul>
 <li>安装证书</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装证书</span></span><br><span class="line">sudo cp cdi-uploadproxy-server-cert.crt /etc/pki/ca-trust/source/anchors</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">刷新证书</span></span><br><span class="line">sudo update-ca-trust</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 安装证书</span>
+<span class="token function">sudo</span> <span class="token function">cp</span> cdi-uploadproxy-server-cert.crt /etc/pki/ca-trust/source/anchors
+
+<span class="token comment"># 刷新证书</span>
+<span class="token function">sudo</span> update-ca-trust<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <ul>
 <li>上传</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">virtctl image-upload dv dv-test</span><br><span class="line">    --size=5Gi \</span><br><span class="line">    --image-path=./Fedora-Cloud-Base-33-1.2.x86_64.raw.xz \</span><br><span class="line">    --uploadproxy-url=https://cdi-uploadproxy:31937 </span><br><span class="line">    #--insecure # 不需要此参数</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">virtctl image-upload dv dv-test
+    <span class="token parameter variable">--size</span><span class="token operator">=</span>5Gi <span class="token punctuation">\</span>
+    --image-path<span class="token operator">=</span>./Fedora-Cloud-Base-33-1.2.x86_64.raw.xz <span class="token punctuation">\</span>
+    --uploadproxy-url<span class="token operator">=</span>https://cdi-uploadproxy:31937 
+    <span class="token comment">#--insecure # 不需要此参数</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h4 id="设置默认上传地址"><a href="#设置默认上传地址" class="headerlink" title="设置默认上传地址"></a>设置默认上传地址</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl patch cdi cdi \</span><br><span class="line">  --type merge \</span><br><span class="line">  --patch &#x27;&#123;&quot;spec&quot;:&#123;&quot;config&quot;:&#123;&quot;uploadProxyURLOverride&quot;:&quot;https://cdi-uploadproxy:31937&quot;&#125;&#125;&#125;&#x27;</span><br></pre></td></tr></table></figure>
+<h4 id="设置默认上传地址"><a href="#设置默认上传地址" class="headerlink" title="设置默认上传地址"></a>设置默认上传地址</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kubectl patch cdi cdi <span class="token punctuation">\</span>
+  <span class="token parameter variable">--type</span> merge <span class="token punctuation">\</span>
+  <span class="token parameter variable">--patch</span> <span class="token string">'&#123;"spec":&#123;"config":&#123;"uploadProxyURLOverride":"https://cdi-uploadproxy:31937"&#125;&#125;&#125;'</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 
 <p>上传的时候就不需要带<code>--uploadproxy-url</code>参数了</p>
-<h3 id="使用pvc的作为vm系统盘"><a href="#使用pvc的作为vm系统盘" class="headerlink" title="使用pvc的作为vm系统盘"></a>使用pvc的作为vm系统盘</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF &gt; vm1.yaml</span><br><span class="line">apiVersion: kubevirt.io/v1</span><br><span class="line">kind: VirtualMachine</span><br><span class="line">metadata:</span><br><span class="line">  generation: 1</span><br><span class="line">  labels:</span><br><span class="line">    kubevirt.io/os: linux</span><br><span class="line">  name: vm1</span><br><span class="line">spec:</span><br><span class="line">  running: true</span><br><span class="line">  template:</span><br><span class="line">      labels:</span><br><span class="line">        kubevirt.io/domain: vm1</span><br><span class="line">    spec:</span><br><span class="line">      domain:</span><br><span class="line">        cpu:</span><br><span class="line">          cores: 1</span><br><span class="line">        devices:</span><br><span class="line">          disks:</span><br><span class="line">          - disk:</span><br><span class="line">              bus: virtio</span><br><span class="line">            name: disk0</span><br><span class="line">          - cdrom:</span><br><span class="line">              bus: sata</span><br><span class="line">              readonly: true</span><br><span class="line">            name: cloudinitdisk</span><br><span class="line">        machine:</span><br><span class="line">          type: q35</span><br><span class="line">        resources:</span><br><span class="line">          requests:</span><br><span class="line">            memory: 512M</span><br><span class="line">      volumes:</span><br><span class="line">      - name: disk0</span><br><span class="line">        persistentVolumeClaim:</span><br><span class="line">          claimName: fedora</span><br><span class="line">      - cloudInitNoCloud:</span><br><span class="line">          userData: |</span><br><span class="line">            #cloud-config</span><br><span class="line">            hostname: vm1</span><br><span class="line">            ssh_pwauth: True</span><br><span class="line">            disable_root: false</span><br><span class="line">            ssh_authorized_keys:</span><br><span class="line">            - ssh-rsa &lt;公钥&gt; </span><br><span class="line">        name: cloudinitdisk</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">kubectl apply -f vm1.yaml</span><br></pre></td></tr></table></figure>
+<h3 id="使用pvc的作为vm系统盘"><a href="#使用pvc的作为vm系统盘" class="headerlink" title="使用pvc的作为vm系统盘"></a>使用pvc的作为vm系统盘</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">></span> vm1.yaml</span>
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  generation: 1
+  labels:
+    kubevirt.io/os: linux
+  name: vm1
+spec:
+  running: true
+  template:
+      labels:
+        kubevirt.io/domain: vm1
+    spec:
+      domain:
+        cpu:
+          cores: 1
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: disk0
+          - cdrom:
+              bus: sata
+              readonly: true
+            name: cloudinitdisk
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: 512M
+      volumes:
+      - name: disk0
+        persistentVolumeClaim:
+          claimName: fedora
+      - cloudInitNoCloud:
+          userData: |
+            #cloud-config
+            hostname: vm1
+            ssh_pwauth: True
+            disable_root: false
+            ssh_authorized_keys:
+            - ssh-rsa &lt;公钥> 
+        name: cloudinitdisk
+EOF</span>
+
+kubectl apply <span class="token parameter variable">-f</span> vm1.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <ul>
 <li>直接创建vmi</li>
 </ul>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF | kubectl apply -f -</span><br><span class="line">apiVersion: kubevirt.io/v1alpha3</span><br><span class="line">kind: VirtualMachineInstance</span><br><span class="line">metadata:</span><br><span class="line">  name: dv-test</span><br><span class="line">spec:</span><br><span class="line">  domain:</span><br><span class="line">    devices:</span><br><span class="line">      disks:</span><br><span class="line">      - disk:</span><br><span class="line">          bus: virtio</span><br><span class="line">        name: dvdisk</span><br><span class="line">    machine:</span><br><span class="line">      type: &quot;&quot;</span><br><span class="line">    resources:</span><br><span class="line">      requests:</span><br><span class="line">        memory: 64M</span><br><span class="line">  terminationGracePeriodSeconds: 0</span><br><span class="line">  volumes:</span><br><span class="line">  - name: dvdisk</span><br><span class="line">    dataVolume:</span><br><span class="line">      name: dv-test</span><br><span class="line">status: &#123;&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">|</span> kubectl apply <span class="token parameter variable">-f</span> -</span>
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachineInstance
+metadata:
+  name: dv-test
+spec:
+  domain:
+    devices:
+      disks:
+      - disk:
+          bus: virtio
+        name: dvdisk
+    machine:
+      type: ""
+    resources:
+      requests:
+        memory: 64M
+  terminationGracePeriodSeconds: 0
+  volumes:
+  - name: dvdisk
+    dataVolume:
+      name: dv-test
+status: &#123;&#125;
+EOF</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <ul>
 <li>使用vm</li>
 </ul>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">kubevirt.io/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">VirtualMachine</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">kubevirt.io/os:</span> <span class="string">linux</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">dv-test</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">running:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">kubevirt.io/domain:</span> <span class="string">dv-test</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">domain:</span></span><br><span class="line">        <span class="attr">cpu:</span></span><br><span class="line">          <span class="attr">cores:</span> <span class="number">1</span></span><br><span class="line">        <span class="attr">devices:</span></span><br><span class="line">          <span class="attr">disks:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">disk:</span></span><br><span class="line">              <span class="attr">bus:</span> <span class="string">virtio</span></span><br><span class="line">            <span class="attr">name:</span> <span class="string">disk0</span></span><br><span class="line">        <span class="attr">machine:</span></span><br><span class="line">          <span class="attr">type:</span> <span class="string">q35</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">          <span class="attr">requests:</span></span><br><span class="line">            <span class="attr">memory:</span> <span class="string">512M</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">disk0</span></span><br><span class="line">        <span class="attr">dataVolume:</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">dv-test</span></span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> kubevirt.io/v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> VirtualMachine
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">labels</span><span class="token punctuation">:</span>
+    <span class="token key atrule">kubevirt.io/os</span><span class="token punctuation">:</span> linux
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> dv<span class="token punctuation">-</span>test
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">running</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+  <span class="token key atrule">template</span><span class="token punctuation">:</span>
+    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
+        <span class="token key atrule">kubevirt.io/domain</span><span class="token punctuation">:</span> dv<span class="token punctuation">-</span>test
+    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
+      <span class="token key atrule">domain</span><span class="token punctuation">:</span>
+        <span class="token key atrule">cpu</span><span class="token punctuation">:</span>
+          <span class="token key atrule">cores</span><span class="token punctuation">:</span> <span class="token number">1</span>
+        <span class="token key atrule">devices</span><span class="token punctuation">:</span>
+          <span class="token key atrule">disks</span><span class="token punctuation">:</span>
+          <span class="token punctuation">-</span> <span class="token key atrule">disk</span><span class="token punctuation">:</span>
+              <span class="token key atrule">bus</span><span class="token punctuation">:</span> virtio
+            <span class="token key atrule">name</span><span class="token punctuation">:</span> disk0
+        <span class="token key atrule">machine</span><span class="token punctuation">:</span>
+          <span class="token key atrule">type</span><span class="token punctuation">:</span> q35
+        <span class="token key atrule">resources</span><span class="token punctuation">:</span>
+          <span class="token key atrule">requests</span><span class="token punctuation">:</span>
+            <span class="token key atrule">memory</span><span class="token punctuation">:</span> 512M
+      <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> disk0
+        <span class="token key atrule">dataVolume</span><span class="token punctuation">:</span>
+          <span class="token key atrule">name</span><span class="token punctuation">:</span> dv<span class="token punctuation">-</span>test<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://kubevirt.io/user-guide/">https://kubevirt.io/user-guide/</a></p>
 
@@ -459,7 +655,7 @@
 <script src="/js/third-party/search/local-search.js"></script>
 
 
-  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.7.0/mermaid.min.js","integrity":"sha256-TtLOdUA8mstPoO6sGvHIGx2ceXrrX4KgIItO06XOn8A="}}</script>
   <script src="/js/third-party/tags/mermaid.js"></script>
 
 

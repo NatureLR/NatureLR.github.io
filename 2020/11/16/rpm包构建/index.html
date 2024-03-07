@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="RPM（Redhat Package Manager）是Rhel，Centos，Fedora等系统的软件包管理格式">
 <meta property="og:type" content="article">
@@ -249,13 +249,19 @@
 <h5 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h5><blockquote>
 <p>在centos等使用rpm的系统中安装</p>
 </blockquote>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y rpm-build rpmlint yum-utils rpmdevtools</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">yum <span class="token function">install</span> <span class="token parameter variable">-y</span> rpm-build rpmlint yum-utils rpmdevtools<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <h5 id="生成目录结构"><a href="#生成目录结构" class="headerlink" title="生成目录结构"></a>生成目录结构</h5><p>初始化目录结构：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpmdev-setuptree</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">rpmdev-setuptree<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>在<code>home</code>目录下生成目录结构如下</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">rpmbuild</span><br><span class="line">├── BUILD</span><br><span class="line">├── BUILDROOT</span><br><span class="line">├── RPMS</span><br><span class="line">├── SOURCES</span><br><span class="line">├── SPECS</span><br><span class="line">└── SRPMS</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">rpmbuild
+├── BUILD
+├── BUILDROOT
+├── RPMS
+├── SOURCES
+├── SPECS
+└── SRPMS<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <table>
 <thead>
@@ -303,11 +309,72 @@
 <td>spec文件存放的目录</td>
 </tr>
 </tbody></table>
-<h5 id="编写spec文件"><a href="#编写spec文件" class="headerlink" title="编写spec文件"></a>编写spec文件</h5><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">%global debug_package %&#123;nil&#125;</span><br><span class="line"></span><br><span class="line">Name:           &#123;&#123;.project&#125;&#125;</span><br><span class="line">Version:        %&#123;_version&#125;</span><br><span class="line">Release:        1%&#123;?dist&#125;</span><br><span class="line">Summary:        &#123;&#123;.ShortDescribe&#125;&#125;</span><br><span class="line"></span><br><span class="line">Group:          Application/WebServer</span><br><span class="line">License:        Apache 2.0</span><br><span class="line">URL:            http://www.baidu.com</span><br><span class="line">Source0:        %&#123;name&#125;.tar.gz</span><br><span class="line"></span><br><span class="line"># 构建依赖</span><br><span class="line">BuildRequires:  git</span><br><span class="line">BuildRequires:  make</span><br><span class="line"></span><br><span class="line"># 详细描述</span><br><span class="line">%description</span><br><span class="line"></span><br><span class="line">&#123;&#123;.LongDescribe&#125;&#125;</span><br><span class="line"></span><br><span class="line"># 构建之前执行的脚本，一般为解压缩将在source目录的压缩包解压到build目录</span><br><span class="line">%prep</span><br><span class="line"></span><br><span class="line"># %setup 不加任何选项，仅将软件包打开。</span><br><span class="line"># %setup -a 切换目录前，解压指定 Source 文件，例如 &quot;-a 0&quot; 表示解压 &quot;Source0&quot;</span><br><span class="line"># %setup -n newdir 将软件包解压在newdir目录。</span><br><span class="line"># %setup -c 解压缩之前先产生目录。</span><br><span class="line"># %setup -b num 将第 num 个 source 文件解压缩。</span><br><span class="line"># %setup -D 解压前不删除目录</span><br><span class="line"># %setup -T 不使用default的解压缩操作。</span><br><span class="line"># %setup -q 不显示解包过程</span><br><span class="line"># %setup -T -b 0 将第 0 个源代码文件解压缩。</span><br><span class="line"># %setup -c -n newdir 指定目录名称 newdir，并在此目录产生 rpm 套件。</span><br><span class="line"># %setup -q 不打印解压日志</span><br><span class="line"></span><br><span class="line">%setup -q -c -n src -a 0</span><br><span class="line"></span><br><span class="line"># 编译脚本</span><br><span class="line">%build</span><br><span class="line"></span><br><span class="line">cd &#123;&#123;.project&#125;&#125; &amp;&amp; make</span><br><span class="line"></span><br><span class="line"># 检查</span><br><span class="line">%check</span><br><span class="line"></span><br><span class="line">&#123;&#123;.project&#125;&#125;/bin/&#123;&#123;.project&#125;&#125; version</span><br><span class="line"></span><br><span class="line"># 安装脚本,将build目录产生的可执行文件复制到buildroot虚拟目录中</span><br><span class="line">%install</span><br><span class="line"></span><br><span class="line">install -D  -p  -m 0755 $&#123;RPM_BUILD_DIR&#125;/src/&#123;&#123;.project&#125;&#125;/bin/&#123;&#123;.project&#125;&#125; $&#123;RPM_BUILD_ROOT&#125;%&#123;_bindir&#125;/&#123;&#123;.project&#125;&#125;</span><br><span class="line">install -D -m 0644 $&#123;RPM_BUILD_DIR&#125;/src/&#123;&#123;.project&#125;&#125;/&#123;&#123;.project&#125;&#125;.service $&#123;RPM_BUILD_ROOT&#125;%&#123;_unitdir&#125;/&#123;&#123;.project&#125;&#125;.service</span><br><span class="line"></span><br><span class="line"># 说明%&#123;buildroot&#125;中那些文件和目录需要打包到rpm中</span><br><span class="line">%files</span><br><span class="line"></span><br><span class="line">%&#123;_bindir&#125;/&#123;&#123;.project&#125;&#125;</span><br><span class="line">%&#123;_unitdir&#125;/&#123;&#123;.project&#125;&#125;.service</span><br><span class="line"></span><br><span class="line"># 变更记录</span><br><span class="line">%changelog</span><br></pre></td></tr></table></figure>
+<h5 id="编写spec文件"><a href="#编写spec文件" class="headerlink" title="编写spec文件"></a>编写spec文件</h5><pre class="line-numbers language-spec" data-language="spec"><code class="language-spec">%global debug_package %&#123;nil&#125;
+
+Name:           &#123;&#123;.project&#125;&#125;
+Version:        %&#123;_version&#125;
+Release:        1%&#123;?dist&#125;
+Summary:        &#123;&#123;.ShortDescribe&#125;&#125;
+
+Group:          Application&#x2F;WebServer
+License:        Apache 2.0
+URL:            http:&#x2F;&#x2F;www.baidu.com
+Source0:        %&#123;name&#125;.tar.gz
+
+# 构建依赖
+BuildRequires:  git
+BuildRequires:  make
+
+# 详细描述
+%description
+
+&#123;&#123;.LongDescribe&#125;&#125;
+
+# 构建之前执行的脚本，一般为解压缩将在source目录的压缩包解压到build目录
+%prep
+
+# %setup 不加任何选项，仅将软件包打开。
+# %setup -a 切换目录前，解压指定 Source 文件，例如 &quot;-a 0&quot; 表示解压 &quot;Source0&quot;
+# %setup -n newdir 将软件包解压在newdir目录。
+# %setup -c 解压缩之前先产生目录。
+# %setup -b num 将第 num 个 source 文件解压缩。
+# %setup -D 解压前不删除目录
+# %setup -T 不使用default的解压缩操作。
+# %setup -q 不显示解包过程
+# %setup -T -b 0 将第 0 个源代码文件解压缩。
+# %setup -c -n newdir 指定目录名称 newdir，并在此目录产生 rpm 套件。
+# %setup -q 不打印解压日志
+
+%setup -q -c -n src -a 0
+
+# 编译脚本
+%build
+
+cd &#123;&#123;.project&#125;&#125; &amp;&amp; make
+
+# 检查
+%check
+
+&#123;&#123;.project&#125;&#125;&#x2F;bin&#x2F;&#123;&#123;.project&#125;&#125; version
+
+# 安装脚本,将build目录产生的可执行文件复制到buildroot虚拟目录中
+%install
+
+install -D  -p  -m 0755 $&#123;RPM_BUILD_DIR&#125;&#x2F;src&#x2F;&#123;&#123;.project&#125;&#125;&#x2F;bin&#x2F;&#123;&#123;.project&#125;&#125; $&#123;RPM_BUILD_ROOT&#125;%&#123;_bindir&#125;&#x2F;&#123;&#123;.project&#125;&#125;
+install -D -m 0644 $&#123;RPM_BUILD_DIR&#125;&#x2F;src&#x2F;&#123;&#123;.project&#125;&#125;&#x2F;&#123;&#123;.project&#125;&#125;.service $&#123;RPM_BUILD_ROOT&#125;%&#123;_unitdir&#125;&#x2F;&#123;&#123;.project&#125;&#125;.service
+
+# 说明%&#123;buildroot&#125;中那些文件和目录需要打包到rpm中
+%files
+
+%&#123;_bindir&#125;&#x2F;&#123;&#123;.project&#125;&#125;
+%&#123;_unitdir&#125;&#x2F;&#123;&#123;.project&#125;&#125;.service
+
+# 变更记录
+%changelog<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <p>将上面的文件保存到<code>rpmbuild/SPECS</code>目录</p>
 <h5 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h5><p>将上面的spec文件保存为test.spec到<code>~/rpmbuild/SPECS/</code>中执行</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpmbuild -ba ~/rpmbuild/SPECS/test.spec</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-sehll" data-language="sehll"><code class="language-sehll">rpmbuild -ba ~&#x2F;rpmbuild&#x2F;SPECS&#x2F;test.spec<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>脚本如果没有问题的话在<code>~/rpmbuild/RPMS</code>目录下生成rpm文件<code>~/rpmbuild/SRPMS</code>为rpm源码包</p>
 <h6 id="常用选项"><a href="#常用选项" class="headerlink" title="常用选项"></a>常用选项</h6><ul>
@@ -400,7 +467,7 @@
 <script src="/js/third-party/search/local-search.js"></script>
 
 
-  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.7.0/mermaid.min.js","integrity":"sha256-TtLOdUA8mstPoO6sGvHIGx2ceXrrX4KgIItO06XOn8A="}}</script>
   <script src="/js/third-party/tags/mermaid.js"></script>
 
 

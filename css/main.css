@@ -18,10 +18,10 @@
   --btn-default-hover-bg: transparent;
   --btn-default-hover-color: var(--link-hover-color);
   --btn-default-hover-border-color: var(--link-hover-color);
-  --highlight-background: #f3f3f3;
-  --highlight-foreground: #444;
-  --highlight-gutter-background: #e1e1e1;
-  --highlight-gutter-foreground: #555;
+  --highlight-background: #2d2d2d;
+  --highlight-foreground: #ccc;
+  --highlight-gutter-background: #3c3c3c;
+  --highlight-gutter-foreground: #bcbcbc;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -3164,7 +3164,7 @@ header.header {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #b4d6ff;
+  background: #ff7e46;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);

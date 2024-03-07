@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="rancer是一个多k8s集群管理工具">
 <meta property="og:type" content="article">
@@ -250,14 +250,38 @@
 <h5 id="在k8s集群里安装"><a href="#在k8s集群里安装" class="headerlink" title="在k8s集群里安装"></a>在k8s集群里安装</h5><blockquote>
 <p>直接部署在k8s中具备高可用 <br>中文官方<a target="_blank" rel="noopener" href="https://www.rancher.cn/">https://www.rancher.cn</a>英文官网<a target="_blank" rel="noopener" href="https://rancher.com/">https://rancher.com</a></p>
 </blockquote>
-<h6 id="rancher需要cert-manager"><a href="#rancher需要cert-manager" class="headerlink" title="rancher需要cert-manager"></a>rancher需要cert-manager</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加helm仓库</span></span><br><span class="line">helm repo add jetstack https://charts.jetstack.io</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">更新仓库</span></span><br><span class="line">helm repo update</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">使用helm安装cert-manager</span></span><br><span class="line">helm install \</span><br><span class="line"> cert-manager jetstack/cert-manager \</span><br><span class="line"> --namespace cert-manager \</span><br><span class="line"> --set installCRDs=true \</span><br><span class="line"> --create-namespace</span><br></pre></td></tr></table></figure>
+<h6 id="rancher需要cert-manager"><a href="#rancher需要cert-manager" class="headerlink" title="rancher需要cert-manager"></a>rancher需要cert-manager</h6><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 添加helm仓库</span>
+helm repo <span class="token function">add</span> jetstack https://charts.jetstack.io
 
-<h6 id="使用helm安装rancher"><a href="#使用helm安装rancher" class="headerlink" title="使用helm安装rancher"></a>使用helm安装rancher</h6><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加rancher的repo仓库，这里是用latest，生产环境推荐使用stable，尝鲜使用alpha</span></span><br><span class="line">helm repo add rancher-latest http://rancher-mirror.oss-cn-beijing.aliyuncs.com/server-charts/latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装rancher</span></span><br><span class="line">helm install rancher rancher-latest/rancher \</span><br><span class="line"> --namespace cattle-system \</span><br><span class="line"> --set hostname=&lt;域名&gt; \</span><br><span class="line"> --create-namespace</span><br></pre></td></tr></table></figure>
+<span class="token comment"># 更新仓库</span>
+helm repo update
+
+<span class="token comment"># 使用helm安装cert-manager</span>
+helm <span class="token function">install</span> <span class="token punctuation">\</span>
+ cert-manager jetstack/cert-manager <span class="token punctuation">\</span>
+ <span class="token parameter variable">--namespace</span> cert-manager <span class="token punctuation">\</span>
+ <span class="token parameter variable">--set</span> <span class="token assign-left variable">installCRDs</span><span class="token operator">=</span>true <span class="token punctuation">\</span>
+ --create-namespace<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h6 id="使用helm安装rancher"><a href="#使用helm安装rancher" class="headerlink" title="使用helm安装rancher"></a>使用helm安装rancher</h6><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 添加rancher的repo仓库，这里是用latest，生产环境推荐使用stable，尝鲜使用alpha</span>
+helm repo <span class="token function">add</span> rancher-latest http://rancher-mirror.oss-cn-beijing.aliyuncs.com/server-charts/latest
+
+<span class="token comment"># 安装rancher</span>
+helm <span class="token function">install</span> rancher rancher-latest/rancher <span class="token punctuation">\</span>
+ <span class="token parameter variable">--namespace</span> cattle-system <span class="token punctuation">\</span>
+ <span class="token parameter variable">--set</span> <span class="token assign-left variable">hostname</span><span class="token operator">=</span><span class="token operator">&lt;</span>域名<span class="token operator">></span> <span class="token punctuation">\</span>
+ --create-namespace<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h5 id="单节点安装"><a href="#单节点安装" class="headerlink" title="单节点安装"></a>单节点安装</h5><blockquote>
 <p>作为一个单独的程序管理其他的集群</p>
 </blockquote>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --restart=unless-stopped \</span><br><span class="line">  -p 80:80 -p 443:443 \</span><br><span class="line">  -v /data/rancher:/var/lib/rancher/ \</span><br><span class="line">  -v /data/rancher/log/auditlog:/var/log/auditlog \</span><br><span class="line">  -e CATTLE_SYSTEM_CATALOG=bundled \</span><br><span class="line">  -e AUDIT_LEVEL=3 \</span><br><span class="line"> rancher/rancher:stable --no-cacerts</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">-d</span> <span class="token parameter variable">--restart</span><span class="token operator">=</span>unless-stopped <span class="token punctuation">\</span>
+  <span class="token parameter variable">-p</span> <span class="token number">80</span>:80 <span class="token parameter variable">-p</span> <span class="token number">443</span>:443 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-v</span> /data/rancher:/var/lib/rancher/ <span class="token punctuation">\</span>
+  <span class="token parameter variable">-v</span> /data/rancher/log/auditlog:/var/log/auditlog <span class="token punctuation">\</span>
+  <span class="token parameter variable">-e</span> <span class="token assign-left variable">CATTLE_SYSTEM_CATALOG</span><span class="token operator">=</span>bundled <span class="token punctuation">\</span>
+  <span class="token parameter variable">-e</span> <span class="token assign-left variable">AUDIT_LEVEL</span><span class="token operator">=</span><span class="token number">3</span> <span class="token punctuation">\</span>
+ rancher/rancher:stable --no-cacerts<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
     </div>
 
@@ -341,7 +365,7 @@
 <script src="/js/third-party/search/local-search.js"></script>
 
 
-  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.7.0/mermaid.min.js","integrity":"sha256-TtLOdUA8mstPoO6sGvHIGx2ceXrrX4KgIItO06XOn8A="}}</script>
   <script src="/js/third-party/tags/mermaid.js"></script>
 
 

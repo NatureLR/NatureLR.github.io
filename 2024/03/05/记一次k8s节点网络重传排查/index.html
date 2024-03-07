@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="值班的时候有用户报障他们的一个定时job有超时，他们自己抓包发现网络有重传认为我们的k8s网络有问题 看了下历史记录问，题是去年提出的，之前同事已经测试过长ping，且抓包未发现异常，他们发现访问的服务端和客户端的pod都在同一个节点上，怀疑用户业务自身问题">
 <meta property="og:type" content="article">
@@ -257,7 +257,7 @@
 <p>从现象来看此时我也认为是客户自身业务导致，但是客户坚持认为和业务没关系</p>
 <p>客户提供了一个是集群让我们测试，以及出问题的pod</p>
 <p>于是就在客户的测试集群中使用ab测试出问题的那些pod的网络情况，并没有发现问题,因为ab没有按时间探测的功能所有把包给加大了，测试了同node和不同node</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ab -c 10 -t 1000 -n 10000000 http://&lt;ip&gt;/</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">ab <span class="token parameter variable">-c</span> <span class="token number">10</span> <span class="token parameter variable">-t</span> <span class="token number">1000</span> <span class="token parameter variable">-n</span> <span class="token number">10000000</span> http://<span class="token operator">&lt;</span>ip<span class="token operator">></span>/<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>在测试3天之后发现ab中偶有超时最长是1000ms+，此时怀疑可能网络有问题了但不是那么的确定，因为重传有很多原因</p>
 <p>同时登录上客户的机器看了cpu，内存等情况，发现客户的内存的free很少，网卡有丢包统计但是不是很多<code>ethtool -S etho</code>等命令查看队列等，没有发现太多相关性</p>
@@ -269,7 +269,7 @@
 <p><img src="/../images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-1.png" alt="alt text"></p>
 <p>和客户会议后的第二天客户表示问题依然出现，客户部署了监控之后我们看监控也是正常的</p>
 <p>此时想抓出问题的时候的ingress包，则在客户的生产环境的node上执行了一个抓包，同时查看tcp重传相关</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup  tcpdump -i any src host &lt;src_ip&gt; and dst host &lt;dest_ip&gt; -w test.pcap &amp;</span><br></pre></td></tr></table></figure>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">nohup</span>  tcpdump <span class="token parameter variable">-i</span> any src <span class="token function">host</span> <span class="token operator">&lt;</span>src_ip<span class="token operator">></span> and dst <span class="token function">host</span> <span class="token operator">&lt;</span>dest_ip<span class="token operator">></span> <span class="token parameter variable">-w</span> test.pcap <span class="token operator">&amp;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
 <p>经过一夜抓包之后使用wireshark分析发现有大量的重传和重复确认的包，在分析包中的时候顺吧看了下系统日志,发现里面有一些oom且内存free较少，将oom和内存的情况反馈给客户</p>
 <p><img src="/../images/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5-3.png" alt="alt text"></p>
@@ -378,7 +378,7 @@
 <script src="/js/third-party/search/local-search.js"></script>
 
 
-  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js","integrity":"sha256-mm3Re3y7xlvh+yCD+l/Zs1d+PU0AEad93MkWvljfm/s="}}</script>
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.7.0/mermaid.min.js","integrity":"sha256-TtLOdUA8mstPoO6sGvHIGx2ceXrrX4KgIItO06XOn8A="}}</script>
   <script src="/js/third-party/tags/mermaid.js"></script>
 
 

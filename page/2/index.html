@@ -150,7 +150,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">88</span>
+          <span class="site-state-item-count">89</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -181,6 +181,90 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2024/03/05/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/03/05/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5/" class="post-title-link" itemprop="url">记一次k8s节点网络重传排查</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-03-05 15:05:00" itemprop="dateCreated datePublished" datetime="2024-03-05T15:05:00+08:00">2024-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-06-19 17:33:39" itemprop="dateModified" datetime="2024-06-19T17:33:39+08:00">2024-06-19</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>值班的时候有用户报障他们的一个定时job有超时，他们自己抓包发现网络有重传认为我们的k8s网络有问题</p>
+<p>看了下历史记录问，题是去年提出的，之前同事已经测试过长ping，且抓包未发现异常，他们发现访问的服务端和客户端的pod都在同一个节点上，怀疑用户业务自身问题</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2024/03/05/%E8%AE%B0%E4%B8%80%E6%AC%A1k8s%E8%8A%82%E7%82%B9%E7%BD%91%E7%BB%9C%E9%87%8D%E4%BC%A0%E6%8E%92%E6%9F%A5/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -522,7 +606,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2023/11/10/%E5%9C%A8k8s%E9%9B%86%E7%BE%A4%E4%B8%AD%E9%83%A8%E7%BD%B2tikv/">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2023/11/09/%E5%9C%A8k8s%E9%9B%86%E7%BE%A4%E4%B8%AD%E9%83%A8%E7%BD%B2tikv/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -540,7 +624,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/11/10/%E5%9C%A8k8s%E9%9B%86%E7%BE%A4%E4%B8%AD%E9%83%A8%E7%BD%B2tikv/" class="post-title-link" itemprop="url">在k8s集群中部署tikv</a>
+          <a href="/2023/11/09/%E5%9C%A8k8s%E9%9B%86%E7%BE%A4%E4%B8%AD%E9%83%A8%E7%BD%B2tikv/" class="post-title-link" itemprop="url">在k8s集群中部署tikv</a>
         </h2>
 
         <div class="post-meta-container">
@@ -574,7 +658,7 @@
           <p><a target="_blank" rel="noopener" href="https://github.com/pingcap/tidb">tidb</a>是<a target="_blank" rel="noopener" href="https://www.pingcap.com/">pingcap</a>开发的开源数据库</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2023/11/10/%E5%9C%A8k8s%E9%9B%86%E7%BE%A4%E4%B8%AD%E9%83%A8%E7%BD%B2tikv/#more" rel="contents">
+              <a class="btn" href="/2023/11/09/%E5%9C%A8k8s%E9%9B%86%E7%BE%A4%E4%B8%AD%E9%83%A8%E7%BD%B2tikv/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -907,89 +991,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2023/11/03/containerd%E6%BA%90%E7%A0%81-content/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2023/11/03/containerd%E6%BA%90%E7%A0%81-%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Nature丿灵然">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Nature丿灵然">
-      <meta itemprop="description" content="Nature丿灵然的博客">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Nature丿灵然">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/11/03/containerd%E6%BA%90%E7%A0%81-%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F/" class="post-title-link" itemprop="url">containerd源码-下载镜像</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-11-03 14:11:00" itemprop="dateCreated datePublished" datetime="2023-11-03T14:11:00+08:00">2023-11-03</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-06 14:07:54" itemprop="dateModified" datetime="2024-03-06T14:07:54+08:00">2024-03-06</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>前面介绍了插件注册以及启动,本次介绍下载镜像的过程</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/11/03/containerd%E6%BA%90%E7%A0%81-%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>

@@ -1687,7 +1687,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #d426b0;
+  background: #750329;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -3238,4 +3238,8 @@ span.exturl:hover {
   color: #fff;
   font-weight: 900;
   font-size: 32px;
+}
+code {
+  background-color: #f8f8f8;
+  color: #e96900;
 }

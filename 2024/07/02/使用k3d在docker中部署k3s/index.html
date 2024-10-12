@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha256-XOqroi11tY4EFQMR9ZYwZWKj5ZXiftSx36RRuC3anlA=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.20.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="k3d是一个在docker里面运行k3s的项目,主要用于本地开发k8s环境，这minikube很相似">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用k3d在docker中部署k3s">
+<meta property="og:url" content="http://blog.naturelr.cc/2024/07/02/%E4%BD%BF%E7%94%A8k3d%E5%9C%A8docker%E4%B8%AD%E9%83%A8%E7%BD%B2k3s/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="k3d是一个在docker里面运行k3s的项目,主要用于本地开发k8s环境，这minikube很相似">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-07-02T02:30:00.000Z">
+<meta property="article:modified_time" content="2024-08-06T08:41:44.634Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="k8s">
+<meta property="article:tag" content="gpu">
+<meta property="article:tag" content="k3s">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2024/07/02/%E4%BD%BF%E7%94%A8k3d%E5%9C%A8docker%E4%B8%AD%E9%83%A8%E7%BD%B2k3s/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2024/07/02/%E4%BD%BF%E7%94%A8k3d%E5%9C%A8docker%E4%B8%AD%E9%83%A8%E7%BD%B2k3s/","path":"2024/07/02/使用k3d在docker中部署k3s/","title":"使用k3d在docker中部署k3s"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>使用k3d在docker中部署k3s | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2"><span class="nav-number">1.</span> <span class="nav-text">部署</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">基本操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GPU"><span class="nav-number">3.</span> <span class="nav-text">GPU</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">4.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">55</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2024/07/02/%E4%BD%BF%E7%94%A8k3d%E5%9C%A8docker%E4%B8%AD%E9%83%A8%E7%BD%B2k3s/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="使用k3d在docker中部署k3s | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用k3d在docker中部署k3s
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-07-02 10:30:00" itemprop="dateCreated datePublished" datetime="2024-07-02T10:30:00+08:00">2024-07-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-06 16:41:44" itemprop="dateModified" datetime="2024-08-06T16:41:44+08:00">2024-08-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>k3d是一个在docker里面运行k3s的项目,主要用于本地开发k8s环境，这minikube很相似</p>
+<span id="more"></span>
+
+<h4 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h4><ul>
+<li>需要事先安装好docker和kubectl</li>
+</ul>
+<pre class="line-numbers language-shel" data-language="shel"><code class="language-shel">curl -s https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;k3d-io&#x2F;k3d&#x2F;main&#x2F;install.sh | bash<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h4><ul>
+<li>创建集群</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">k3d cluster create <span class="token operator">&lt;</span>集群名字<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>三节点master</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">k3d cluster create <span class="token operator">&lt;</span>集群名字<span class="token operator">></span> <span class="token parameter variable">--servers</span> <span class="token number">3</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>删除集群</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">k3d cluster delete <span class="token operator">&lt;</span>集群名字<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>添加节点</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">k3d <span class="token function">node</span> create <span class="token operator">&lt;</span>节点名<span class="token operator">></span> <span class="token parameter variable">-c</span> <span class="token operator">&lt;</span>集群名<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>将docker的镜像导入到k3d中</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">k3d image <span class="token function">import</span> <span class="token operator">&lt;</span>镜像名<span class="token operator">></span> <span class="token parameter variable">-c</span> <span class="token operator">&lt;</span>集群名字<span class="token operator">></span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="GPU"><a href="#GPU" class="headerlink" title="GPU"></a>GPU</h4><ul>
+<li>默认k3d的镜像是没法使用gpu的需要手动构建gpu镜像,<a target="_blank" rel="noopener" href="https://k3d.io/v5.6.3/usage/advanced/cuda/#dockerfile">官方</a>提供了一个dockerfile文件，<code>cuda版本需要和节点的相同</code></li>
+</ul>
+<pre class="line-numbers language-docker" data-language="docker"><code class="language-docker"><span class="token instruction"><span class="token keyword">ARG</span> K3S_TAG=<span class="token string">"v1.28.8-k3s1"</span></span>
+<span class="token instruction"><span class="token keyword">ARG</span> CUDA_TAG=<span class="token string">"12.4.1-base-ubuntu22.04"</span></span>
+
+<span class="token instruction"><span class="token keyword">FROM</span> rancher/k3s:<span class="token variable">$K3S_TAG</span> <span class="token keyword">as</span> k3s</span>
+<span class="token instruction"><span class="token keyword">FROM</span> nvcr.io/nvidia/cuda:<span class="token variable">$CUDA_TAG</span></span>
+
+<span class="token comment"># Install the NVIDIA container toolkit</span>
+<span class="token instruction"><span class="token keyword">RUN</span> apt-get update &amp;&amp; apt-get install -y curl <span class="token operator">\</span>
+    &amp;&amp; curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg <span class="token operator">\</span>
+    &amp;&amp; curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | <span class="token operator">\</span>
+      sed <span class="token string">'s#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g'</span> | <span class="token operator">\</span>
+      tee /etc/apt/sources.list.d/nvidia-container-toolkit.list <span class="token operator">\</span>
+    &amp;&amp; apt-get update &amp;&amp; apt-get install -y nvidia-container-toolkit <span class="token operator">\</span>
+    &amp;&amp; nvidia-ctk runtime configure --runtime=containerd</span>
+
+<span class="token instruction"><span class="token keyword">COPY</span> <span class="token options"><span class="token property">--from</span><span class="token punctuation">=</span><span class="token string">k3s</span></span> / / --exclude=/bin</span>
+<span class="token instruction"><span class="token keyword">COPY</span> <span class="token options"><span class="token property">--from</span><span class="token punctuation">=</span><span class="token string">k3s</span></span> /bin /bin</span>
+
+<span class="token comment"># Deploy the nvidia driver plugin on startup</span>
+<span class="token instruction"><span class="token keyword">COPY</span> device-plugin-daemonset.yaml /var/lib/rancher/k3s/server/manifests/nvidia-device-plugin-daemonset.yaml</span>
+
+<span class="token instruction"><span class="token keyword">VOLUME</span> /var/lib/kubelet</span>
+<span class="token instruction"><span class="token keyword">VOLUME</span> /var/lib/rancher/k3s</span>
+<span class="token instruction"><span class="token keyword">VOLUME</span> /var/lib/cni</span>
+<span class="token instruction"><span class="token keyword">VOLUME</span> /var/log</span>
+
+<span class="token instruction"><span class="token keyword">ENV</span> PATH=<span class="token string">"$PATH:/bin/aux"</span></span>
+
+<span class="token instruction"><span class="token keyword">ENTRYPOINT</span> [<span class="token string">"/bin/k3s"</span>]</span>
+<span class="token instruction"><span class="token keyword">CMD</span> [<span class="token string">"agent"</span>]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>还需要nvidia-device-plugin</li>
+</ul>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> node.k8s.io/v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> RuntimeClass
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> nvidia
+<span class="token key atrule">handler</span><span class="token punctuation">:</span> nvidia
+<span class="token punctuation">---</span>
+<span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> apps/v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> DaemonSet
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> nvidia<span class="token punctuation">-</span>device<span class="token punctuation">-</span>plugin<span class="token punctuation">-</span>daemonset
+  <span class="token key atrule">namespace</span><span class="token punctuation">:</span> kube<span class="token punctuation">-</span>system
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">selector</span><span class="token punctuation">:</span>
+    <span class="token key atrule">matchLabels</span><span class="token punctuation">:</span>
+      <span class="token key atrule">name</span><span class="token punctuation">:</span> nvidia<span class="token punctuation">-</span>device<span class="token punctuation">-</span>plugin<span class="token punctuation">-</span>ds
+  <span class="token key atrule">updateStrategy</span><span class="token punctuation">:</span>
+    <span class="token key atrule">type</span><span class="token punctuation">:</span> RollingUpdate
+  <span class="token key atrule">template</span><span class="token punctuation">:</span>
+    <span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+      <span class="token key atrule">labels</span><span class="token punctuation">:</span>
+        <span class="token key atrule">name</span><span class="token punctuation">:</span> nvidia<span class="token punctuation">-</span>device<span class="token punctuation">-</span>plugin<span class="token punctuation">-</span>ds
+    <span class="token key atrule">spec</span><span class="token punctuation">:</span>
+      <span class="token key atrule">runtimeClassName</span><span class="token punctuation">:</span> nvidia <span class="token comment"># Explicitly request the runtime</span>
+      <span class="token key atrule">tolerations</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">key</span><span class="token punctuation">:</span> nvidia.com/gpu
+        <span class="token key atrule">operator</span><span class="token punctuation">:</span> Exists
+        <span class="token key atrule">effect</span><span class="token punctuation">:</span> NoSchedule
+      <span class="token comment"># Mark this pod as a critical add-on; when enabled, the critical add-on</span>
+      <span class="token comment"># scheduler reserves resources for critical add-on pods so that they can</span>
+      <span class="token comment"># be rescheduled after a failure.</span>
+      <span class="token comment"># See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/</span>
+      <span class="token key atrule">priorityClassName</span><span class="token punctuation">:</span> <span class="token string">"system-node-critical"</span>
+      <span class="token key atrule">containers</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">image</span><span class="token punctuation">:</span> nvcr.io/nvidia/k8s<span class="token punctuation">-</span>device<span class="token punctuation">-</span>plugin<span class="token punctuation">:</span>v0.15.0<span class="token punctuation">-</span>rc.2
+        <span class="token key atrule">name</span><span class="token punctuation">:</span> nvidia<span class="token punctuation">-</span>device<span class="token punctuation">-</span>plugin<span class="token punctuation">-</span>ctr
+        <span class="token key atrule">env</span><span class="token punctuation">:</span>
+          <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> FAIL_ON_INIT_ERROR
+            <span class="token key atrule">value</span><span class="token punctuation">:</span> <span class="token string">"false"</span>
+        <span class="token key atrule">securityContext</span><span class="token punctuation">:</span>
+          <span class="token key atrule">allowPrivilegeEscalation</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+          <span class="token key atrule">capabilities</span><span class="token punctuation">:</span>
+            <span class="token key atrule">drop</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"ALL"</span><span class="token punctuation">]</span>
+        <span class="token key atrule">volumeMounts</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> device<span class="token punctuation">-</span>plugin
+          <span class="token key atrule">mountPath</span><span class="token punctuation">:</span> /var/lib/kubelet/device<span class="token punctuation">-</span>plugins
+      <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> device<span class="token punctuation">-</span>plugin
+        <span class="token key atrule">hostPath</span><span class="token punctuation">:</span>
+          <span class="token key atrule">path</span><span class="token punctuation">:</span> /var/lib/kubelet/device<span class="token punctuation">-</span>plugins<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>使用编译脚本编译,需要实际填写自己的镜像仓库地址</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token shebang important">#!/bin/bash</span>
+
+<span class="token builtin class-name">set</span> <span class="token parameter variable">-euxo</span> pipefail
+
+<span class="token assign-left variable">K3S_TAG</span><span class="token operator">=</span><span class="token variable">$&#123;K3S_TAG<span class="token operator">:=</span>"v1.28.8-k3s1"&#125;</span> <span class="token comment"># replace + with -, if needed</span>
+<span class="token assign-left variable">CUDA_TAG</span><span class="token operator">=</span><span class="token variable">$&#123;CUDA_TAG<span class="token operator">:=</span>"12.4.1-base-ubuntu22.04"&#125;</span>
+<span class="token assign-left variable">IMAGE_REGISTRY</span><span class="token operator">=</span><span class="token variable">$&#123;IMAGE_REGISTRY<span class="token operator">:=</span>"&lt;镜像仓库>"&#125;</span>
+<span class="token assign-left variable">IMAGE_REPOSITORY</span><span class="token operator">=</span><span class="token variable">$&#123;IMAGE_REPOSITORY<span class="token operator">:=</span>"rancher<span class="token operator">/</span>k3s"&#125;</span>
+<span class="token assign-left variable">IMAGE_TAG</span><span class="token operator">=</span><span class="token string">"<span class="token variable">$K3S_TAG</span>-cuda-<span class="token variable">$CUDA_TAG</span>"</span>
+<span class="token assign-left variable">IMAGE</span><span class="token operator">=</span><span class="token variable">$&#123;IMAGE<span class="token operator">:=</span>"$IMAGE_REGISTRY<span class="token operator">/</span>$IMAGE_REPOSITORY<span class="token operator">:</span>$IMAGE_TAG"&#125;</span>
+
+<span class="token builtin class-name">echo</span> <span class="token string">"IMAGE=<span class="token variable">$IMAGE</span>"</span>
+
+<span class="token function">docker</span> build <span class="token punctuation">\</span>
+  --build-arg <span class="token assign-left variable">K3S_TAG</span><span class="token operator">=</span><span class="token variable">$K3S_TAG</span> <span class="token punctuation">\</span>
+  --build-arg <span class="token assign-left variable">CUDA_TAG</span><span class="token operator">=</span><span class="token variable">$CUDA_TAG</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-t</span> <span class="token variable">$IMAGE</span> <span class="token builtin class-name">.</span>
+<span class="token function">docker</span> push <span class="token variable">$IMAGE</span>
+<span class="token builtin class-name">echo</span> <span class="token string">"Done!"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>使用gpu镜像,其中环境变量是设置nvidia驱动功能这里设置了全部开启，不然测试pod会跑不起来，这些环境你变量在<a target="_blank" rel="noopener" href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/docker-specialized.html">nvidia官网文档</a></li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">k3d cluster create gputest <span class="token parameter variable">--image</span><span class="token operator">=</span><span class="token operator">&lt;</span>GPU镜像<span class="token operator">></span> <span class="token parameter variable">--gpus</span><span class="token operator">=</span><span class="token number">1</span> <span class="token parameter variable">-e</span> <span class="token string">"NVIDIA_DRIVER_CAPABILITIES=compute,utility,compat32,graphics,video,display@server:0"</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>部署这个测试pod</li>
+</ul>
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token key atrule">apiVersion</span><span class="token punctuation">:</span> v1
+<span class="token key atrule">kind</span><span class="token punctuation">:</span> Pod
+<span class="token key atrule">metadata</span><span class="token punctuation">:</span>
+  <span class="token key atrule">name</span><span class="token punctuation">:</span> cuda<span class="token punctuation">-</span>vector<span class="token punctuation">-</span>add
+<span class="token key atrule">spec</span><span class="token punctuation">:</span>
+  <span class="token key atrule">runtimeClassName</span><span class="token punctuation">:</span> nvidia <span class="token comment"># Explicitly request the runtime</span>
+  <span class="token key atrule">restartPolicy</span><span class="token punctuation">:</span> OnFailure
+  <span class="token key atrule">containers</span><span class="token punctuation">:</span>
+    <span class="token punctuation">-</span> <span class="token key atrule">name</span><span class="token punctuation">:</span> cuda<span class="token punctuation">-</span>vector<span class="token punctuation">-</span>add
+      <span class="token key atrule">image</span><span class="token punctuation">:</span> <span class="token string">"k8s.gcr.io/cuda-vector-add:v0.1"</span>
+      <span class="token key atrule">resources</span><span class="token punctuation">:</span>
+        <span class="token key atrule">limits</span><span class="token punctuation">:</span>
+          <span class="token key atrule">nvidia.com/gpu</span><span class="token punctuation">:</span> <span class="token number">1</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>pod日志结果,部署成功</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kubectl logs <span class="token parameter variable">-f</span> cuda-vector-add
+<span class="token comment"># [Vector addition of 50000 elements]</span>
+<span class="token comment"># Copy input data from the host memory to the CUDA device</span>
+<span class="token comment"># CUDA kernel launch with 196 blocks of 256 threads</span>
+<span class="token comment"># Copy output data from the CUDA device to the host memory</span>
+<span class="token comment"># Test PASSED</span>
+<span class="token comment"># Done</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://k3d.io/v5.6.3/usage/configfile/">https://k3d.io/v5.6.3/usage/configfile/</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/docker/" rel="tag"># docker</a>
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+              <a href="/tags/gpu/" rel="tag"># gpu</a>
+              <a href="/tags/k3s/" rel="tag"># k3s</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/07/01/lvm%E4%BD%BF%E7%94%A8/" rel="prev" title="lvm使用">
+                  <i class="fa fa-angle-left"></i> lvm使用
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/07/09/restic%E5%A4%87%E4%BB%BDlinux%E7%9B%AE%E5%BD%95/" rel="next" title="restic备份linux目录">
+                  restic备份linux目录 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js","integrity":"sha256-stuqcu2FrjYCXDOytWFA5SoUE/r3nkp6gTglzNSlavU="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.2.0">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
@@ -22,27 +22,27 @@
 
     <meta name="description" content="最近个国内各大docker镜像仓库都无法访问，我们可以在海外自己部署一个镜像仓库">
 <meta property="og:type" content="article">
-<meta property="og:title" content="部署私有docker加速仓库">
-<meta property="og:url" content="http://blog.naturelr.cc/2024/06/25/%E9%83%A8%E7%BD%B2%E7%A7%81%E6%9C%89docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/index.html">
+<meta property="og:title" content="使用docker-registry部署docker加速仓库">
+<meta property="og:url" content="http://blog.naturelr.cc/2024/06/25/%E4%BD%BF%E7%94%A8docker-registry%E9%83%A8%E7%BD%B2docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/index.html">
 <meta property="og:site_name" content="Nature丿灵然">
 <meta property="og:description" content="最近个国内各大docker镜像仓库都无法访问，我们可以在海外自己部署一个镜像仓库">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-06-25T16:42:00.000Z">
-<meta property="article:modified_time" content="2024-06-28T09:46:11.247Z">
+<meta property="article:modified_time" content="2024-08-06T08:41:44.621Z">
 <meta property="article:author" content="Nature丿灵然">
 <meta property="article:tag" content="docker">
 <meta property="article:tag" content="镜像仓库">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://blog.naturelr.cc/2024/06/25/%E9%83%A8%E7%BD%B2%E7%A7%81%E6%9C%89docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/">
+<link rel="canonical" href="http://blog.naturelr.cc/2024/06/25/%E4%BD%BF%E7%94%A8docker-registry%E9%83%A8%E7%BD%B2docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2024/06/25/%E9%83%A8%E7%BD%B2%E7%A7%81%E6%9C%89docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/","path":"2024/06/25/部署私有docker加速仓库/","title":"部署私有docker加速仓库"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2024/06/25/%E4%BD%BF%E7%94%A8docker-registry%E9%83%A8%E7%BD%B2docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/","path":"2024/06/25/使用docker-registry部署docker加速仓库/","title":"使用docker-registry部署docker加速仓库"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>部署私有docker加速仓库 | Nature丿灵然</title>
+<title>使用docker-registry部署docker加速仓库 | Nature丿灵然</title>
   
 
 
@@ -142,7 +142,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93"><span class="nav-number">1.</span> <span class="nav-text">部署加速仓库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#docker%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">docker配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93"><span class="nav-number">1.</span> <span class="nav-text">部署加速仓库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#docker%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">docker配置</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A4%E8%AF%81"><span class="nav-number">2.1.</span> <span class="nav-text">认证</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -155,13 +155,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">89</span>
+          <span class="site-state-item-count">94</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">53</span>
+        <span class="site-state-item-count">55</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -196,7 +196,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2024/06/25/%E9%83%A8%E7%BD%B2%E7%A7%81%E6%9C%89docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2024/06/25/%E4%BD%BF%E7%94%A8docker-registry%E9%83%A8%E7%BD%B2docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -209,12 +209,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="部署私有docker加速仓库 | Nature丿灵然">
+      <meta itemprop="name" content="使用docker-registry部署docker加速仓库 | Nature丿灵然">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          部署私有docker加速仓库
+          使用docker-registry部署docker加速仓库
         </h1>
 
         <div class="post-meta-container">
@@ -232,7 +232,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-28 17:46:11" itemprop="dateModified" datetime="2024-06-28T17:46:11+08:00">2024-06-28</time>
+      <time title="修改时间：2024-08-06 16:41:44" itemprop="dateModified" datetime="2024-08-06T16:41:44+08:00">2024-08-06</time>
     </span>
 
   
@@ -277,6 +277,8 @@
     <span class="token key atrule">rootdirectory</span><span class="token punctuation">:</span> /var/lib/registry
   <span class="token comment">#tag:</span>
   <span class="token comment">#  concurrencylimit: 8</span>
+  <span class="token comment">#delete: #配置删除权限,默认安装的Registry不支持删除</span>
+  <span class="token comment">#  enabled: true</span>
 <span class="token key atrule">http</span><span class="token punctuation">:</span>
   <span class="token key atrule">addr</span><span class="token punctuation">:</span> <span class="token punctuation">:</span><span class="token number">5000</span>
   <span class="token key atrule">headers</span><span class="token punctuation">:</span>
@@ -284,14 +286,14 @@
 <span class="token comment">#auth:</span>
 <span class="token comment">#  htpasswd:</span>
 <span class="token comment">#    realm: basic-realm</span>
-<span class="token comment">#    path: /etc/registry</span>
+<span class="token comment">#    path: /etc/docker/registry/htpasswd</span>
 <span class="token key atrule">health</span><span class="token punctuation">:</span>
   <span class="token key atrule">storagedriver</span><span class="token punctuation">:</span>
     <span class="token key atrule">enabled</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
     <span class="token key atrule">interval</span><span class="token punctuation">:</span> 10s
     <span class="token key atrule">threshold</span><span class="token punctuation">:</span> <span class="token number">3</span>
 <span class="token key atrule">proxy</span><span class="token punctuation">:</span>
-    <span class="token key atrule">remoteurl</span><span class="token punctuation">:</span> https<span class="token punctuation">:</span>//registry<span class="token punctuation">-</span>1.docker.io<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+    <span class="token key atrule">remoteurl</span><span class="token punctuation">:</span> https<span class="token punctuation">:</span>//registry<span class="token punctuation">-</span>1.docker.io<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
 <h4 id="docker配置"><a href="#docker配置" class="headerlink" title="docker配置"></a>docker配置</h4><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
   <span class="token property">"registry-mirrors"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"http://&lt;ip:port>"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
@@ -303,6 +305,14 @@
 </ul>
 <pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">systemctl restart <span class="token function">docker</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
+<h5 id="认证"><a href="#认证" class="headerlink" title="认证"></a>认证</h5><ul>
+<li>生成密码</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">--rm</span> <span class="token parameter variable">--entrypoint</span> htpasswd httpd:2 <span class="token parameter variable">-Bbn</span> <span class="token operator">&lt;</span>账号密码<span class="token operator">></span> <span class="token operator">&lt;</span>密码<span class="token operator">></span> <span class="token operator">></span> htpasswd<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>将生成的文件放在上面配置的路径</li>
+</ul>
 <h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://distribution.github.io/distribution/">https://distribution.github.io/distribution/</a><br><a target="_blank" rel="noopener" href="https://docs.docker.com/docker-hub/mirror/#configure-the-cache">https://docs.docker.com/docker-hub/mirror/#configure-the-cache</a></p>
 
     </div>
@@ -326,6 +336,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2024/06/28/determined-ai%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" rel="next" title="determined-ai代码分析">
+                  determined-ai代码分析 <i class="fa fa-angle-right"></i>
+                </a>
             </div>
           </div>
     </footer>

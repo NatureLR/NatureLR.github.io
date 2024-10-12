@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha256-XOqroi11tY4EFQMR9ZYwZWKj5ZXiftSx36RRuC3anlA=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.20.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="determined-ai是一个ai训练平台">
+<meta property="og:type" content="article">
+<meta property="og:title" content="determined-ai代码分析">
+<meta property="og:url" content="http://blog.naturelr.cc/2024/06/28/determined-ai%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="determined-ai是一个ai训练平台">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-06-28T09:54:00.000Z">
+<meta property="article:modified_time" content="2024-08-06T08:41:44.115Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="ai">
+<meta property="article:tag" content="go">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2024/06/28/determined-ai%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2024/06/28/determined-ai%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/","path":"2024/06/28/determined-ai代码分析/","title":"determined-ai代码分析"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>determined-ai代码分析 | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">启动流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BAnotebook%E5%88%86%E6%9E%90%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">创建notebook分析流程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#requestResources"><span class="nav-number">2.1.</span> <span class="nav-text">requestResources</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#run"><span class="nav-number">2.2.</span> <span class="nav-text">run</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#buiuldRM"><span class="nav-number">2.3.</span> <span class="nav-text">buiuldRM</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#newPodsService"><span class="nav-number">2.3.1.</span> <span class="nav-text">newPodsService</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Schedule"><span class="nav-number">2.3.2.</span> <span class="nav-text">Schedule</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">55</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2024/06/28/determined-ai%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="determined-ai代码分析 | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          determined-ai代码分析
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-06-28 17:54:00" itemprop="dateCreated datePublished" datetime="2024-06-28T17:54:00+08:00">2024-06-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-06 16:41:44" itemprop="dateModified" datetime="2024-08-06T16:41:44+08:00">2024-08-06</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><a target="_blank" rel="noopener" href="https://github.com/determined-ai/determined">determined-ai</a>是一个ai训练平台</p>
+<span id="more"></span>
+
+<h4 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h4><ul>
+<li>入口,使用了cobra作为命令行框架</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/cmd/determined-master/main.go</span>
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  logger<span class="token punctuation">.</span><span class="token function">SetLogrus</span><span class="token punctuation">(</span><span class="token operator">*</span>logger<span class="token punctuation">.</span><span class="token function">DefaultConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+  <span class="token keyword">if</span> err <span class="token operator">:=</span> rootCmd<span class="token punctuation">.</span><span class="token function">Execute</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+    log<span class="token punctuation">.</span><span class="token function">WithError</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span><span class="token string">"fatal error running Determined master"</span><span class="token punctuation">)</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>命令行处理,全局变量rootCmd由<code>newRootCmd()</code>实现,<code>RUN</code>下开始真正的执行,runRoot</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/cmd/determined-master/root.go</span>
+
+<span class="token keyword">var</span> rootCmd <span class="token operator">=</span> <span class="token function">newRootCmd</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">newRootCmd</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span>cobra<span class="token punctuation">.</span>Command <span class="token punctuation">&#123;</span>
+  cmd <span class="token operator">:=</span> <span class="token operator">&amp;</span>cobra<span class="token punctuation">.</span>Command<span class="token punctuation">&#123;</span>
+    Use<span class="token punctuation">:</span> <span class="token string">"determined-master"</span><span class="token punctuation">,</span>
+    Run<span class="token punctuation">:</span> <span class="token keyword">func</span><span class="token punctuation">(</span>cmd <span class="token operator">*</span>cobra<span class="token punctuation">.</span>Command<span class="token punctuation">,</span> args <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token keyword">if</span> err <span class="token operator">:=</span> <span class="token function">runRoot</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        log<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"%+v"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        os<span class="token punctuation">.</span><span class="token function">Exit</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+      <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li><p>处理日志和初始化配置文件以及必要的路径，做完这些准备之后就开始调用<code>internal.New()</code>初始化一个<code>master</code></p>
+</li>
+<li><p>然后执行run</p>
+</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/cmd/determined-master/root.go</span>
+<span class="token keyword">func</span> <span class="token function">runRoot</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+  logStore <span class="token operator">:=</span> logger<span class="token punctuation">.</span><span class="token function">NewLogBuffer</span><span class="token punctuation">(</span>logStoreSize<span class="token punctuation">)</span>
+  log<span class="token punctuation">.</span><span class="token function">AddHook</span><span class="token punctuation">(</span>logStore<span class="token punctuation">)</span>
+
+  err <span class="token operator">:=</span> <span class="token function">initializeConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  config <span class="token operator">:=</span> config<span class="token punctuation">.</span><span class="token function">GetMasterConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  printableConfig<span class="token punctuation">,</span> err <span class="token operator">:=</span> config<span class="token punctuation">.</span><span class="token function">Printable</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  err <span class="token operator">=</span> os<span class="token punctuation">.</span><span class="token function">MkdirAll</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>Cache<span class="token punctuation">.</span>CacheDir<span class="token punctuation">,</span> <span class="token number">0o700</span><span class="token punctuation">)</span>
+  m <span class="token operator">:=</span> internal<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>logStore<span class="token punctuation">,</span> config<span class="token punctuation">)</span>
+  <span class="token keyword">return</span> m<span class="token punctuation">.</span><span class="token function">Run</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token boolean">nil</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>RUN这里是整个程序的主体结构</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/core.go</span>
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>m <span class="token operator">*</span>Master<span class="token punctuation">)</span> <span class="token function">Run</span><span class="token punctuation">(</span>ctx context<span class="token punctuation">.</span>Context<span class="token punctuation">,</span> gRPCLogInitDone <span class="token keyword">chan</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 判断是否是新集群以创建密码，略过</span>
+ 
+    <span class="token comment">// 设置数据库</span>
+    m<span class="token punctuation">.</span>db<span class="token punctuation">,</span> err <span class="token operator">=</span> db<span class="token punctuation">.</span><span class="token function">Setup</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>DB<span class="token punctuation">,</span> newClustersRequirePasswords<span class="token punctuation">)</span>
+
+    <span class="token comment">// 设置webbhook</span>
+    webhookManager<span class="token punctuation">,</span> err <span class="token operator">:=</span> webhooks<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span>
+    webhooks<span class="token punctuation">.</span><span class="token function">SetDefault</span><span class="token punctuation">(</span>webhookManager<span class="token punctuation">)</span>
+
+    l<span class="token punctuation">,</span> err <span class="token operator">:=</span> logpattern<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span>
+    logpattern<span class="token punctuation">.</span><span class="token function">SetDefault</span><span class="token punctuation">(</span>l<span class="token punctuation">)</span>
+
+
+    <span class="token comment">// 根据配置文件的资源管理</span>
+    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> r <span class="token operator">:=</span> <span class="token keyword">range</span> m<span class="token punctuation">.</span>config<span class="token punctuation">.</span><span class="token function">ResourceManagers</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      err <span class="token operator">=</span> m<span class="token punctuation">.</span><span class="token function">checkIfRMDefaultsAreUnbound</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 初始化用户服务</span>
+    user<span class="token punctuation">.</span><span class="token function">InitService</span><span class="token punctuation">(</span>m<span class="token punctuation">.</span>db<span class="token punctuation">,</span> <span class="token operator">&amp;</span>m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>InternalConfig<span class="token punctuation">.</span>ExternalSessions<span class="token punctuation">)</span>
+    userService <span class="token operator">:=</span> user<span class="token punctuation">.</span><span class="token function">GetService</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment">// 初始化代理</span>
+    proxy<span class="token punctuation">.</span><span class="token function">InitProxy</span><span class="token punctuation">(</span>processProxyAuthentication<span class="token punctuation">)</span>
+    portregistry<span class="token punctuation">.</span><span class="token function">InitPortRegistry</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span><span class="token function">GetMasterConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ReservedPorts<span class="token punctuation">)</span>
+
+    <span class="token comment">// 初始化http服务</span>
+    m<span class="token punctuation">.</span>echo <span class="token operator">=</span> echo<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token comment">// 中间有些路由和中间件注册</span>
+
+    <span class="token comment">// 初始化资源管理</span>
+    <span class="token keyword">if</span> m<span class="token punctuation">.</span>rm<span class="token punctuation">,</span> err <span class="token operator">=</span> <span class="token function">buildRM</span><span class="token punctuation">(</span>m<span class="token punctuation">.</span>db<span class="token punctuation">,</span> m<span class="token punctuation">.</span>echo<span class="token punctuation">,</span> m<span class="token punctuation">.</span>config<span class="token punctuation">.</span><span class="token function">ResourceManagers</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token operator">&amp;</span>m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>TaskContainerDefaults<span class="token punctuation">,</span>
+    <span class="token operator">&amp;</span>aproto<span class="token punctuation">.</span>MasterSetAgentOptions<span class="token punctuation">&#123;</span>
+      MasterInfo<span class="token punctuation">:</span>     m<span class="token punctuation">.</span><span class="token function">Info</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+      LoggingOptions<span class="token punctuation">:</span> m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Logging<span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    cert<span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token comment">// 设置jobservice</span>
+    jobservice<span class="token punctuation">.</span><span class="token function">SetDefaultService</span><span class="token punctuation">(</span>m<span class="token punctuation">.</span>rm<span class="token punctuation">)</span>
+
+    <span class="token comment">// 命令服务初始化</span>
+    cs<span class="token punctuation">,</span> err <span class="token operator">:=</span> command<span class="token punctuation">.</span><span class="token function">NewService</span><span class="token punctuation">(</span>m<span class="token punctuation">.</span>db<span class="token punctuation">,</span> m<span class="token punctuation">.</span>rm<span class="token punctuation">)</span>
+    command<span class="token punctuation">.</span><span class="token function">SetDefaultService</span><span class="token punctuation">(</span>cs<span class="token punctuation">)</span>
+
+    <span class="token comment">// 一些文档之类的路由注册</span>
+
+    <span class="token comment">// 最后进入启动环节</span>
+    <span class="token keyword">return</span> m<span class="token punctuation">.</span><span class="token function">startServers</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> cert<span class="token punctuation">,</span> gRPCLogInitDone<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>启动服务，这里需要注意使用cmux实现了一个监听接口同时可以http和grpc，且将grpc的一些api注册到http中 可以参考<a target="_blank" rel="noopener" href="https://golang2.eddycjy.com/posts/ch3/06-grpc-http-support/">https://golang2.eddycjy.com/posts/ch3/06-grpc-http-support/</a></li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/core.go</span>
+
+<span class="token comment">// baseListener是最终使用的不过在此之前先获取systemd的，如果没有用systemd则使用配置文件</span>
+<span class="token keyword">var</span> baseListener net<span class="token punctuation">.</span>Listener
+systemdListener<span class="token punctuation">,</span> err <span class="token operator">:=</span> m<span class="token punctuation">.</span><span class="token function">getSystemdListener</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">switch</span> <span class="token punctuation">&#123;</span>
+<span class="token keyword">case</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">:</span>
+<span class="token keyword">case</span> systemdListener <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">:</span>
+    baseListener <span class="token operator">=</span> systemdListener
+    port<span class="token punctuation">,</span> pErr <span class="token operator">:=</span> m<span class="token punctuation">.</span><span class="token function">findListeningPort</span><span class="token punctuation">(</span>systemdListener<span class="token punctuation">)</span>
+    m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Port <span class="token operator">=</span> <span class="token function">int</span><span class="token punctuation">(</span>port<span class="token punctuation">)</span>
+<span class="token keyword">default</span><span class="token punctuation">:</span>
+    baseListener<span class="token punctuation">,</span> err <span class="token operator">=</span> net<span class="token punctuation">.</span><span class="token function">Listen</span><span class="token punctuation">(</span><span class="token string">"tcp"</span><span class="token punctuation">,</span> fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">":%d"</span><span class="token punctuation">,</span> m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Port<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 配置tls证书</span>
+<span class="token keyword">if</span> cert <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// ...</span>
+    baseListener <span class="token operator">=</span> tls<span class="token punctuation">.</span><span class="token function">NewListener</span><span class="token punctuation">(</span>baseListener<span class="token punctuation">,</span> <span class="token operator">&amp;</span>tls<span class="token punctuation">.</span>Config<span class="token punctuation">&#123;</span>
+        Certificates<span class="token punctuation">:</span>             <span class="token punctuation">[</span><span class="token punctuation">]</span>tls<span class="token punctuation">.</span>Certificate<span class="token punctuation">&#123;</span><span class="token operator">*</span>cert<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+        MinVersion<span class="token punctuation">:</span>               tls<span class="token punctuation">.</span>VersionTLS12<span class="token punctuation">,</span>
+        PreferServerCipherSuites<span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        ClientCAs<span class="token punctuation">:</span>                clientCAs<span class="token punctuation">,</span>
+        ClientAuth<span class="token punctuation">:</span>               clientAuthMode<span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+
+
+<span class="token comment">// grpc服务创建，其中 apiServer实现了`proto.DeterminedServer`中所有的接口</span>
+
+<span class="token comment">// This must be before grpcutil.RegisterHTTPProxy is called since it may use stuff set up by the</span>
+<span class="token comment">// gRPC server (logger initialization, maybe more). Found by --race.</span>
+gRPCServer <span class="token operator">:=</span> grpcutil<span class="token punctuation">.</span><span class="token function">NewGRPCServer</span><span class="token punctuation">(</span>m<span class="token punctuation">.</span>db<span class="token punctuation">,</span> <span class="token operator">&amp;</span>apiServer<span class="token punctuation">&#123;</span>m<span class="token punctuation">:</span> m<span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Observability<span class="token punctuation">.</span>EnablePrometheus<span class="token punctuation">,</span>
+    <span class="token operator">&amp;</span>m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>InternalConfig<span class="token punctuation">.</span>ExternalSessions<span class="token punctuation">,</span>
+    m<span class="token punctuation">.</span>logs<span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment">// 将grpc的中的接口注册到http中</span>
+err <span class="token operator">=</span> grpcutil<span class="token punctuation">.</span><span class="token function">RegisterHTTPProxy</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> m<span class="token punctuation">.</span>echo<span class="token punctuation">,</span> m<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Port<span class="token punctuation">,</span> cert<span class="token punctuation">)</span>
+
+<span class="token comment">// 这里使用cumx多路服务器，来实现一个端口就时可以使用http和grpc服务</span>
+<span class="token comment">// Initialize listeners and multiplexing.</span>
+mux <span class="token operator">:=</span> cmux<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>baseListener<span class="token punctuation">)</span>
+<span class="token comment">// 设置cmux匹配grp的条件</span>
+grpcListener <span class="token operator">:=</span> mux<span class="token punctuation">.</span><span class="token function">MatchWithWriters</span><span class="token punctuation">(</span>
+    cmux<span class="token punctuation">.</span><span class="token function">HTTP2MatchHeaderFieldSendSettings</span><span class="token punctuation">(</span><span class="token string">"content-type"</span><span class="token punctuation">,</span> <span class="token string">"application/grpc"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">defer</span> <span class="token function">closeWithErrCheck</span><span class="token punctuation">(</span><span class="token string">"grpc"</span><span class="token punctuation">,</span> grpcListener<span class="token punctuation">)</span>
+
+<span class="token comment">// 设置http 匹配协议</span>
+httpListener <span class="token operator">:=</span> mux<span class="token punctuation">.</span><span class="token function">Match</span><span class="token punctuation">(</span>cmux<span class="token punctuation">.</span><span class="token function">HTTP1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> cmux<span class="token punctuation">.</span><span class="token function">HTTP2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">defer</span> <span class="token function">closeWithErrCheck</span><span class="token punctuation">(</span><span class="token string">"http"</span><span class="token punctuation">,</span> httpListener<span class="token punctuation">)</span>
+
+<span class="token comment">// 启动服务并通过携程来传递错误</span>
+<span class="token comment">// Start all servers and return the first error. This leaks a channel, but the complexity of</span>
+<span class="token comment">// perfectly handling cleanup and all the error cases doesn't seem worth it for a function that is</span>
+<span class="token comment">// called exactly once and causes the whole process to exit immediately when it returns.</span>
+errs <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token builtin">error</span><span class="token punctuation">)</span>
+start <span class="token operator">:=</span> <span class="token keyword">func</span><span class="token punctuation">(</span>name <span class="token builtin">string</span><span class="token punctuation">,</span> run <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        errs <span class="token operator">&lt;-</span> errors<span class="token punctuation">.</span><span class="token function">Wrap</span><span class="token punctuation">(</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> name<span class="token operator">+</span><span class="token string">" failed"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+<span class="token function">start</span><span class="token punctuation">(</span><span class="token string">"gRPC server"</span><span class="token punctuation">,</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// We should defer srv.Stop() here, but cmux does not unblock accept calls when underlying</span>
+    <span class="token comment">// listeners close and grpc-go depends on cmux unblocking and closing, Stop() blocks</span>
+    <span class="token comment">// indefinitely when using cmux.</span>
+    <span class="token comment">// To be fixed by https://github.com/soheilhy/cmux/pull/69 which makes cmux an io.Closer.</span>
+    <span class="token keyword">return</span> gRPCServer<span class="token punctuation">.</span><span class="token function">Serve</span><span class="token punctuation">(</span>grpcListener<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token keyword">defer</span> gRPCServer<span class="token punctuation">.</span><span class="token function">Stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token function">start</span><span class="token punctuation">(</span><span class="token string">"HTTP server"</span><span class="token punctuation">,</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    m<span class="token punctuation">.</span>echo<span class="token punctuation">.</span>Listener <span class="token operator">=</span> httpListener
+    m<span class="token punctuation">.</span>echo<span class="token punctuation">.</span>HidePort <span class="token operator">=</span> <span class="token boolean">true</span>
+    m<span class="token punctuation">.</span>echo<span class="token punctuation">.</span>Server<span class="token punctuation">.</span>ConnContext <span class="token operator">=</span> connsave<span class="token punctuation">.</span>SaveConn
+    <span class="token keyword">return</span> m<span class="token punctuation">.</span>echo<span class="token punctuation">.</span><span class="token function">StartServer</span><span class="token punctuation">(</span>m<span class="token punctuation">.</span>echo<span class="token punctuation">.</span>Server<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token keyword">defer</span> <span class="token function">closeWithErrCheck</span><span class="token punctuation">(</span><span class="token string">"echo"</span><span class="token punctuation">,</span> m<span class="token punctuation">.</span>echo<span class="token punctuation">)</span>
+
+<span class="token function">start</span><span class="token punctuation">(</span><span class="token string">"cmux listener"</span><span class="token punctuation">,</span> mux<span class="token punctuation">.</span>Serve<span class="token punctuation">)</span>
+
+<span class="token comment">// 堵住 防止退出，只有接受到错误消息或者ctx.Done()才退出</span>
+<span class="token keyword">select</span> <span class="token punctuation">&#123;</span>
+<span class="token keyword">case</span> err <span class="token operator">:=</span> <span class="token operator">&lt;-</span>errs<span class="token punctuation">:</span>
+    <span class="token keyword">return</span> err
+<span class="token keyword">case</span> <span class="token operator">&lt;-</span>ctx<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> ctx<span class="token punctuation">.</span><span class="token function">Err</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="创建notebook分析流程"><a href="#创建notebook分析流程" class="headerlink" title="创建notebook分析流程"></a>创建notebook分析流程</h4><blockquote>
+<p>上面启动流程中说了一些路由是通过grpc来实现的是需要实现，主要是实现<code>proto.DeterminedServer</code>这个接口启动<code>LaunchNotebook()</code>是创建Experiment的实现逻辑</p>
+</blockquote>
+<ul>
+<li>在protobuf中定义了接口，且定义了http的接口</li>
+</ul>
+<pre class="line-numbers language-protobuf" data-language="protobuf"><code class="language-protobuf"><span class="token comment">// Launch a notebook.</span>
+<span class="token keyword">rpc</span> <span class="token function">LaunchNotebook</span><span class="token punctuation">(</span><span class="token class-name">LaunchNotebookRequest</span><span class="token punctuation">)</span> <span class="token keyword">returns</span> <span class="token punctuation">(</span><span class="token class-name">LaunchNotebookResponse</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+  <span class="token keyword">option</span> <span class="token punctuation">(</span>google<span class="token punctuation">.</span>api<span class="token punctuation">.</span>http<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+    post<span class="token punctuation">:</span> <span class="token string">"/api/v1/notebooks"</span>
+    body<span class="token punctuation">:</span> <span class="token string">"*"</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+  <span class="token keyword">option</span> <span class="token punctuation">(</span>grpc<span class="token punctuation">.</span>gateway<span class="token punctuation">.</span>protoc_gen_swagger<span class="token punctuation">.</span>options<span class="token punctuation">.</span>openapiv2_operation<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+    tags<span class="token punctuation">:</span> <span class="token string">"Notebooks"</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>go<code>apiServer</code>中则要实现</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/api_notebook.go</span>
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>a <span class="token operator">*</span>apiServer<span class="token punctuation">)</span> <span class="token function">LaunchNotebook</span><span class="token punctuation">(</span>
+  ctx context<span class="token punctuation">.</span>Context<span class="token punctuation">,</span> req <span class="token operator">*</span>apiv1<span class="token punctuation">.</span>LaunchNotebookRequest<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>apiv1<span class="token punctuation">.</span>LaunchNotebookResponse<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+  launchReq<span class="token punctuation">,</span> launchWarnings<span class="token punctuation">,</span> err <span class="token operator">:=</span> a<span class="token punctuation">.</span><span class="token function">getCommandLaunchParams</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> <span class="token operator">&amp;</span>protoCommandParams<span class="token punctuation">&#123;</span>
+  TemplateName<span class="token punctuation">:</span> req<span class="token punctuation">.</span>TemplateName<span class="token punctuation">,</span>
+  WorkspaceID<span class="token punctuation">:</span>  req<span class="token punctuation">.</span>WorkspaceId<span class="token punctuation">,</span>
+  Config<span class="token punctuation">:</span>       req<span class="token punctuation">.</span>Config<span class="token punctuation">,</span>
+  Files<span class="token punctuation">:</span>        req<span class="token punctuation">.</span>Files<span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span> user<span class="token punctuation">)</span>
+
+<span class="token comment">/*
+    中间都是一些参数处理launchReq
+*/</span>
+
+  <span class="token comment">// Launch a Notebook.</span>
+  <span class="token comment">// 拉起一个task和job类型都是是notebook的通用命令</span>
+  genericCmd<span class="token punctuation">,</span> err <span class="token operator">:=</span> command<span class="token punctuation">.</span>DefaultCmdService<span class="token punctuation">.</span><span class="token function">LaunchGenericCommand</span><span class="token punctuation">(</span>
+    model<span class="token punctuation">.</span>TaskTypeNotebook<span class="token punctuation">,</span>
+    model<span class="token punctuation">.</span>JobTypeNotebook<span class="token punctuation">,</span>
+    launchReq<span class="token punctuation">)</span>
+  <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+  <span class="token punctuation">&#125;</span>
+
+  <span class="token comment">// 返回给前端</span>
+  <span class="token keyword">return</span> <span class="token operator">&amp;</span>apiv1<span class="token punctuation">.</span>LaunchNotebookResponse<span class="token punctuation">&#123;</span>
+    Notebook<span class="token punctuation">:</span> genericCmd<span class="token punctuation">.</span><span class="token function">ToV1Notebook</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    Config<span class="token punctuation">:</span>   protoutils<span class="token punctuation">.</span><span class="token function">ToStruct</span><span class="token punctuation">(</span>launchReq<span class="token punctuation">.</span>Spec<span class="token punctuation">.</span>Config<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    Warnings<span class="token punctuation">:</span> pkgCommand<span class="token punctuation">.</span><span class="token function">LaunchWarningToProto</span><span class="token punctuation">(</span>launchWarnings<span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token boolean">nil</span>
+ 
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>LaunchGenericCommand()</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/command/command_service.go</span>
+<span class="token comment">// LaunchGenericCommand creates NTSC commands and persists them to the database.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>cs <span class="token operator">*</span>CommandService<span class="token punctuation">)</span> <span class="token function">LaunchGenericCommand</span><span class="token punctuation">(</span>
+    taskType model<span class="token punctuation">.</span>TaskType<span class="token punctuation">,</span>
+    jobType model<span class="token punctuation">.</span>JobType<span class="token punctuation">,</span>
+    req <span class="token operator">*</span>CreateGeneric<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>Command<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">// 省略掉一些创建id和传值的代码</span>
+    cmd <span class="token operator">:=</span> <span class="token operator">&amp;</span>Command<span class="token punctuation">&#123;</span>
+        db<span class="token punctuation">:</span> cs<span class="token punctuation">.</span>db<span class="token punctuation">,</span>
+        rm<span class="token punctuation">:</span> cs<span class="token punctuation">.</span>rm<span class="token punctuation">,</span>
+        GenericCommandSpec<span class="token punctuation">:</span> <span class="token operator">*</span>req<span class="token punctuation">.</span>Spec<span class="token punctuation">,</span>
+        taskID<span class="token punctuation">:</span>           taskID<span class="token punctuation">,</span>
+        taskType<span class="token punctuation">:</span>         taskType<span class="token punctuation">,</span>
+        jobType<span class="token punctuation">:</span>          jobType<span class="token punctuation">,</span>
+        jobID<span class="token punctuation">:</span>            jobID<span class="token punctuation">,</span>
+        contextDirectory<span class="token punctuation">:</span> req<span class="token punctuation">.</span>ContextDirectory<span class="token punctuation">,</span>
+        logCtx<span class="token punctuation">:</span>           logCtx<span class="token punctuation">,</span>
+        syslog<span class="token punctuation">:</span>           logrus<span class="token punctuation">.</span><span class="token function">WithFields</span><span class="token punctuation">(</span>logrus<span class="token punctuation">.</span>Fields<span class="token punctuation">&#123;</span><span class="token string">"component"</span><span class="token punctuation">:</span> <span class="token string">"command"</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">WithFields</span><span class="token punctuation">(</span>logCtx<span class="token punctuation">.</span><span class="token function">Fields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 开始启动,看下start方法</span>
+    <span class="token keyword">if</span> err <span class="token operator">:=</span> cmd<span class="token punctuation">.</span><span class="token function">Start</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> err
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 启动完成之后将task保存</span>
+    <span class="token comment">// Add it to the registry.</span>
+    cs<span class="token punctuation">.</span>commands<span class="token punctuation">[</span>cmd<span class="token punctuation">.</span>taskID<span class="token punctuation">]</span> <span class="token operator">=</span> cmd
+    <span class="token keyword">return</span> cmd<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/command/command.go</span>
+
+<span class="token comment">// Start starts the command &amp; its respective allocation. Once started, it persists to the db.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Command<span class="token punctuation">)</span> <span class="token function">Start</span><span class="token punctuation">(</span>ctx context<span class="token punctuation">.</span>Context<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">// 开始分配</span>
+    err <span class="token operator">:=</span> task<span class="token punctuation">.</span>DefaultService<span class="token punctuation">.</span><span class="token function">StartAllocation</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>logCtx<span class="token punctuation">,</span>
+        sproto<span class="token punctuation">.</span>AllocateRequest<span class="token punctuation">&#123;</span>
+            AllocationID<span class="token punctuation">:</span>        c<span class="token punctuation">.</span>allocationID<span class="token punctuation">,</span>
+            TaskID<span class="token punctuation">:</span>              c<span class="token punctuation">.</span>taskID<span class="token punctuation">,</span>
+            JobID<span class="token punctuation">:</span>               c<span class="token punctuation">.</span>jobID<span class="token punctuation">,</span>
+            JobSubmissionTime<span class="token punctuation">:</span>   c<span class="token punctuation">.</span>registeredTime<span class="token punctuation">,</span>
+            IsUserVisible<span class="token punctuation">:</span>       <span class="token boolean">true</span><span class="token punctuation">,</span>
+            Name<span class="token punctuation">:</span>                c<span class="token punctuation">.</span>Config<span class="token punctuation">.</span>Description<span class="token punctuation">,</span>
+            SlotsNeeded<span class="token punctuation">:</span>         c<span class="token punctuation">.</span>Config<span class="token punctuation">.</span>Resources<span class="token punctuation">.</span>Slots<span class="token punctuation">,</span>
+            ResourcePool<span class="token punctuation">:</span>        c<span class="token punctuation">.</span>Config<span class="token punctuation">.</span>Resources<span class="token punctuation">.</span>ResourcePool<span class="token punctuation">,</span>
+            FittingRequirements<span class="token punctuation">:</span> sproto<span class="token punctuation">.</span>FittingRequirements<span class="token punctuation">&#123;</span>SingleAgent<span class="token punctuation">:</span> <span class="token boolean">true</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+            ProxyPorts<span class="token punctuation">:</span>          sproto<span class="token punctuation">.</span><span class="token function">NewProxyPortConfig</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>GenericCommandSpec<span class="token punctuation">.</span><span class="token function">ProxyPorts</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> c<span class="token punctuation">.</span>taskID<span class="token punctuation">)</span><span class="token punctuation">,</span>
+            IdleTimeout<span class="token punctuation">:</span>         idleWatcherConfig<span class="token punctuation">,</span>
+            Restore<span class="token punctuation">:</span>             c<span class="token punctuation">.</span>restored<span class="token punctuation">,</span>
+            ProxyTLS<span class="token punctuation">:</span>            c<span class="token punctuation">.</span>TaskType <span class="token operator">==</span> model<span class="token punctuation">.</span>TaskTypeNotebook<span class="token punctuation">,</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">,</span> c<span class="token punctuation">.</span>db<span class="token punctuation">,</span> c<span class="token punctuation">.</span>rm<span class="token punctuation">,</span> c<span class="token punctuation">.</span>GenericCommandSpec<span class="token punctuation">,</span> c<span class="token punctuation">.</span>OnExit<span class="token punctuation">)</span>
+
+    <span class="token comment">// Once the command is persisted to the dbs &amp; allocation starts, register it with the local job service.</span>
+    <span class="token comment">// 注册到job server</span>
+    jobservice<span class="token punctuation">.</span>DefaultService<span class="token punctuation">.</span><span class="token function">RegisterJob</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>jobID<span class="token punctuation">,</span> c<span class="token punctuation">)</span>
+
+    <span class="token comment">// 持久化到到数据库</span>
+    <span class="token keyword">if</span> err <span class="token operator">:=</span> c<span class="token punctuation">.</span><span class="token function">persist</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        c<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">WithError</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Warnf</span><span class="token punctuation">(</span><span class="token string">"command persist failure"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>StartAllocation,是一个接口</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/task/allocation_service.go</span>
+
+<span class="token comment">// StartAllocation starts an allocation and returns a handle to it.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>as <span class="token operator">*</span>allocationService<span class="token punctuation">)</span> <span class="token function">StartAllocation</span><span class="token punctuation">(</span>
+    logCtx detLogger<span class="token punctuation">.</span>Context<span class="token punctuation">,</span>
+    req sproto<span class="token punctuation">.</span>AllocateRequest<span class="token punctuation">,</span>
+    db db<span class="token punctuation">.</span>DB<span class="token punctuation">,</span>
+    rm rm<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">,</span>
+    specifier tasks<span class="token punctuation">.</span>TaskSpecifier<span class="token punctuation">,</span>
+    onExit <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token operator">*</span>AllocationExited<span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+<span class="token comment">/*
+...
+*/</span>
+    <span class="token comment">// 随后进入分配环节</span>
+    ref<span class="token punctuation">,</span> err <span class="token operator">:=</span> <span class="token function">newAllocation</span><span class="token punctuation">(</span>logCtx<span class="token punctuation">,</span> req<span class="token punctuation">,</span> db<span class="token punctuation">,</span> rm<span class="token punctuation">,</span> specifier<span class="token punctuation">)</span>
+    as<span class="token punctuation">.</span>allocations<span class="token punctuation">[</span>req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">]</span> <span class="token operator">=</span> ref
+    <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 开启一个协程等待的资源结束</span>
+        <span class="token comment">// 返回请求消息</span>
+        <span class="token boolean">_</span> <span class="token operator">=</span> ref<span class="token punctuation">.</span><span class="token function">awaitTermination</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        ref<span class="token punctuation">.</span><span class="token function">Cleanup</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        as<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token function">delete</span><span class="token punctuation">(</span>as<span class="token punctuation">.</span>allocations<span class="token punctuation">,</span> req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">)</span>
+        as<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// don't defer in case onExit calls back into the service</span>
+
+        <span class="token function">onExit</span><span class="token punctuation">(</span>ref<span class="token punctuation">.</span>exited<span class="token punctuation">)</span>
+
+        as<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">Info</span><span class="token punctuation">(</span><span class="token string">"allocation cleaned up and removed from cache"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/task/allocation.go</span>
+
+
+<span class="token comment">// newAllocation returns a new allocation, which tracks allocation state in a fairly generic way.</span>
+<span class="token keyword">func</span> <span class="token function">newAllocation</span><span class="token punctuation">(</span>
+    logCtx detLogger<span class="token punctuation">.</span>Context<span class="token punctuation">,</span> req sproto<span class="token punctuation">.</span>AllocateRequest<span class="token punctuation">,</span> db db<span class="token punctuation">.</span>DB<span class="token punctuation">,</span> rm rm<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">,</span>
+    specifier tasks<span class="token punctuation">.</span>TaskSpecifier<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>allocation<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    a <span class="token operator">:=</span> <span class="token operator">&amp;</span>allocation<span class="token punctuation">&#123;</span>
+        db<span class="token punctuation">:</span> db<span class="token punctuation">,</span>
+        rm<span class="token punctuation">:</span> rm<span class="token punctuation">,</span>
+        wg<span class="token punctuation">:</span>     waitgroupx<span class="token punctuation">.</span><span class="token function">WithContext</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">Background</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        syslog<span class="token punctuation">:</span> logrus<span class="token punctuation">.</span><span class="token function">WithFields</span><span class="token punctuation">(</span>logCtx<span class="token punctuation">.</span><span class="token function">Fields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        req<span class="token punctuation">:</span> req<span class="token punctuation">,</span>
+        model<span class="token punctuation">:</span> model<span class="token punctuation">.</span>Allocation<span class="token punctuation">&#123;</span>
+            AllocationID<span class="token punctuation">:</span> req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">,</span>
+            TaskID<span class="token punctuation">:</span>       req<span class="token punctuation">.</span>TaskID<span class="token punctuation">,</span>
+            Slots<span class="token punctuation">:</span>        req<span class="token punctuation">.</span>SlotsNeeded<span class="token punctuation">,</span>
+            ResourcePool<span class="token punctuation">:</span> req<span class="token punctuation">.</span>ResourcePool<span class="token punctuation">,</span>
+            Ports<span class="token punctuation">:</span>        <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">int</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+        specifier<span class="token punctuation">:</span> specifier<span class="token punctuation">,</span>
+        resources<span class="token punctuation">:</span> resourcesList<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+        logCtx<span class="token punctuation">:</span> req<span class="token punctuation">.</span>LogContext<span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 请求资源</span>
+    rmEvents<span class="token punctuation">,</span> err <span class="token operator">:=</span> a<span class="token punctuation">.</span><span class="token function">requestResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token comment">// 根据返回的rm事件运行</span>
+    a<span class="token punctuation">.</span>wg<span class="token punctuation">.</span><span class="token function">Go</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span>ctx context<span class="token punctuation">.</span>Context<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> a<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> rmEvents<span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> a<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h5 id="requestResources"><a href="#requestResources" class="headerlink" title="requestResources"></a>requestResources</h5><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/task/allocation.go</span>
+
+<span class="token comment">// requestResources sets up the allocation.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>a <span class="token operator">*</span>allocation<span class="token punctuation">)</span> <span class="token function">requestResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>sproto<span class="token punctuation">.</span>ResourcesSubscription<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 数据库保存</span>
+    a<span class="token punctuation">.</span><span class="token function">setModelState</span><span class="token punctuation">(</span>model<span class="token punctuation">.</span>AllocationStatePending<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">:=</span> db<span class="token punctuation">.</span><span class="token function">AddAllocation</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>a<span class="token punctuation">.</span>model<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> errors<span class="token punctuation">.</span><span class="token function">Wrap</span><span class="token punctuation">(</span>err<span class="token punctuation">,</span> <span class="token string">"saving trial allocation"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 调用资源管理的Allocate方法，这也是个接口</span>
+    sub<span class="token punctuation">,</span> err <span class="token operator">:=</span> a<span class="token punctuation">.</span>rm<span class="token punctuation">.</span><span class="token function">Allocate</span><span class="token punctuation">(</span>a<span class="token punctuation">.</span>req<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> sub<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>Allocate</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/kubernetes_resource_manager.go</span>
+
+<span class="token comment">// Allocate implements rm.ResourceManager.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>ResourceManager<span class="token punctuation">)</span> <span class="token function">Allocate</span><span class="token punctuation">(</span>msg sproto<span class="token punctuation">.</span>AllocateRequest<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>sproto<span class="token punctuation">.</span>ResourcesSubscription<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// This code exists to handle the case where an experiment does not have</span>
+    <span class="token comment">// an explicit resource pool specified in the config. This should never happen</span>
+    <span class="token comment">// for newly created/forked experiments as the default pool is filled in to the</span>
+    <span class="token comment">// config at creation time. However, old experiments which were created prior to</span>
+    <span class="token comment">// the introduction of resource pools could have no resource pool associated with</span>
+    <span class="token comment">// them and so we need to handle that case gracefully.</span>
+
+    <span class="token comment">// 通过传入的资源池找到该资源池</span>
+    rp<span class="token punctuation">,</span> err <span class="token operator">:=</span> k<span class="token punctuation">.</span><span class="token function">poolByName</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span>ResourcePool<span class="token punctuation">)</span>
+
+    <span class="token comment">// 订阅事件这个AllocationID事件</span>
+    sub <span class="token operator">:=</span> rmevents<span class="token punctuation">.</span><span class="token function">Subscribe</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span>AllocationID<span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"分配请求"</span><span class="token punctuation">)</span>
+    <span class="token comment">// 分配请求的资源</span>
+    rp<span class="token punctuation">.</span><span class="token function">AllocateRequest</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> sub<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>AllocateRequest</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/resource_pool.go</span>
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>kubernetesResourcePool<span class="token punctuation">)</span> <span class="token function">AllocateRequest</span><span class="token punctuation">(</span>msg sproto<span class="token punctuation">.</span>AllocateRequest<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    k<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">defer</span> k<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    k<span class="token punctuation">.</span>reschedule <span class="token operator">=</span> <span class="token boolean">true</span>
+    <span class="token comment">// 添加一个task</span>
+    k<span class="token punctuation">.</span><span class="token function">addTask</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>addTask</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>kubernetesResourcePool<span class="token punctuation">)</span> <span class="token function">addTask</span><span class="token punctuation">(</span>msg sproto<span class="token punctuation">.</span>AllocateRequest<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span>AllocationID<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">&#123;</span>
+        msg<span class="token punctuation">.</span>AllocationID <span class="token operator">=</span> model<span class="token punctuation">.</span><span class="token function">AllocationID</span><span class="token punctuation">(</span>uuid<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    k<span class="token punctuation">.</span><span class="token function">getOrCreateGroup</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span>JobID<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span>Name<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">&#123;</span>
+        msg<span class="token punctuation">.</span>Name <span class="token operator">=</span> <span class="token string">"Unnamed-k8-Task"</span>
+    <span class="token punctuation">&#125;</span>
+
+    k<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">WithField</span><span class="token punctuation">(</span><span class="token string">"restore"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>Restore<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Infof</span><span class="token punctuation">(</span>
+        <span class="token string">"resources are requested by %s (Allocation ID: %s)"</span><span class="token punctuation">,</span>
+        msg<span class="token punctuation">.</span>Name<span class="token punctuation">,</span> msg<span class="token punctuation">.</span>AllocationID<span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token keyword">if</span> msg<span class="token punctuation">.</span>IsUserVisible <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token boolean">_</span><span class="token punctuation">,</span> ok <span class="token operator">:=</span> k<span class="token punctuation">.</span>queuePositions<span class="token punctuation">[</span>msg<span class="token punctuation">.</span>JobID<span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token operator">!</span>ok <span class="token punctuation">&#123;</span>
+            k<span class="token punctuation">.</span>queuePositions<span class="token punctuation">[</span>msg<span class="token punctuation">.</span>JobID<span class="token punctuation">]</span> <span class="token operator">=</span> tasklist<span class="token punctuation">.</span><span class="token function">InitializeQueuePosition</span><span class="token punctuation">(</span>
+                msg<span class="token punctuation">.</span>JobSubmissionTime<span class="token punctuation">,</span>
+                <span class="token boolean">true</span><span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+        k<span class="token punctuation">.</span>jobIDToAllocationID<span class="token punctuation">[</span>msg<span class="token punctuation">.</span>JobID<span class="token punctuation">]</span> <span class="token operator">=</span> msg<span class="token punctuation">.</span>AllocationID
+        k<span class="token punctuation">.</span>allocationIDToJobID<span class="token punctuation">[</span>msg<span class="token punctuation">.</span>AllocationID<span class="token punctuation">]</span> <span class="token operator">=</span> msg<span class="token punctuation">.</span>JobID
+        k<span class="token punctuation">.</span>allocationIDToRunningPods<span class="token punctuation">[</span>msg<span class="token punctuation">.</span>AllocationID<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 添加到 reqlist中</span>
+    k<span class="token punctuation">.</span>reqList<span class="token punctuation">.</span><span class="token function">AddTask</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>msg<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>随后rp.Schedule将分配资源并发布消息，跳转至<a href="#schedule">schedul</a></li>
+</ul>
+<h5 id="run"><a href="#run" class="headerlink" title="run"></a>run</h5><ul>
+<li>回到newAllocation,requestResources执行完成之后开始run</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/task/allocation.go</span>
+
+    <span class="token comment">// 请求资源</span>
+    rmEvents<span class="token punctuation">,</span> err <span class="token operator">:=</span> a<span class="token punctuation">.</span><span class="token function">requestResources</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token comment">// 根据返回的rm事件运行</span>
+    a<span class="token punctuation">.</span>wg<span class="token punctuation">.</span><span class="token function">Go</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span>ctx context<span class="token punctuation">.</span>Context<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> a<span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> rmEvents<span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> a<span class="token punctuation">,</span> <span class="token boolean">nil</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>run</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/task/allocation.go</span>
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>a <span class="token operator">*</span>allocation<span class="token punctuation">)</span> <span class="token function">run</span><span class="token punctuation">(</span>ctx context<span class="token punctuation">.</span>Context<span class="token punctuation">,</span> sub <span class="token operator">*</span>sproto<span class="token punctuation">.</span>ResourcesSubscription<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 循环获取sub事件</span>
+        event<span class="token punctuation">,</span> err <span class="token operator">:=</span> sub<span class="token punctuation">.</span><span class="token function">GetWithContext</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// The following block is only used by tests to simulate a master crash by calling detach().</span>
+            <span class="token comment">// It follows, though, no one should ever call detach() or wg.Cancel() in the code unless you are</span>
+            <span class="token comment">// implementing graceful shutdown.</span>
+            <span class="token keyword">return</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 处理获取的时间</span>
+        done <span class="token operator">:=</span> a<span class="token punctuation">.</span><span class="token function">HandleRMEvent</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> done <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>HandleRMEvent</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/task/allocation.go</span>
+
+<span class="token comment">// HandleRMEvent handles downstream events from the resource manager.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>a <span class="token operator">*</span>allocation<span class="token punctuation">)</span> <span class="token function">HandleRMEvent</span><span class="token punctuation">(</span>msg sproto<span class="token punctuation">.</span>ResourcesEvent<span class="token punctuation">)</span> <span class="token punctuation">(</span>done <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">switch</span> msg <span class="token operator">:=</span> msg<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token keyword">type</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">case</span> <span class="token operator">*</span>sproto<span class="token punctuation">.</span>ResourcesAllocated<span class="token punctuation">:</span>
+        <span class="token comment">// 资源创建事件处理</span>
+        <span class="token keyword">if</span> err <span class="token operator">:=</span> a<span class="token punctuation">.</span><span class="token function">resourcesAllocated</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+            a<span class="token punctuation">.</span><span class="token function">crash</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token keyword">case</span> <span class="token operator">*</span>sproto<span class="token punctuation">.</span>ResourcesStateChanged<span class="token punctuation">:</span>
+        a<span class="token punctuation">.</span><span class="token function">resourcesStateChanged</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+    <span class="token keyword">case</span> <span class="token operator">*</span>sproto<span class="token punctuation">.</span>ReleaseResources<span class="token punctuation">:</span>
+        a<span class="token punctuation">.</span><span class="token function">releaseResources</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+    <span class="token keyword">case</span> <span class="token operator">*</span>sproto<span class="token punctuation">.</span>ContainerLog<span class="token punctuation">:</span>
+        a<span class="token punctuation">.</span><span class="token function">sendTaskLog</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span><span class="token function">ToTaskLog</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token keyword">case</span> <span class="token operator">*</span>sproto<span class="token punctuation">.</span>ResourcesRestoreError<span class="token punctuation">:</span>
+        a<span class="token punctuation">.</span><span class="token function">restoreResourceFailure</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token boolean">true</span>
+    <span class="token keyword">case</span> <span class="token operator">*</span>sproto<span class="token punctuation">.</span>InvalidResourcesRequestError<span class="token punctuation">:</span>
+        a<span class="token punctuation">.</span><span class="token function">crash</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span>Cause<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token boolean">true</span>
+    <span class="token keyword">case</span> sproto<span class="token punctuation">.</span>ResourcesReleasedEvent<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token boolean">true</span>
+    <span class="token keyword">default</span><span class="token punctuation">:</span>
+        <span class="token function">panic</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"unexpected RM event"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token boolean">false</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>resourcesAllocated</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/task/allocation.go</span>
+
+<span class="token comment">// resourcesAllocated handles receiving resources from the resource manager. Note: it makes a single</span>
+<span class="token comment">// ask to the parent to build its task spec.. this is mostly a hack to defer lots of computationally</span>
+<span class="token comment">// heavy stuff unless it is necessarily (which also works to spread occurrences of the same work</span>
+<span class="token comment">// out). Eventually, Allocations should just be started with their TaskSpec.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>a <span class="token operator">*</span>allocation<span class="token punctuation">)</span> <span class="token function">resourcesAllocated</span><span class="token punctuation">(</span>msg <span class="token operator">*</span>sproto<span class="token punctuation">.</span>ResourcesAllocated<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">for</span> cID<span class="token punctuation">,</span> r <span class="token operator">:=</span> <span class="token keyword">range</span> a<span class="token punctuation">.</span>resources <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 启动函数这个也是个接口</span>
+            <span class="token keyword">if</span> err <span class="token operator">:=</span> r<span class="token punctuation">.</span><span class="token function">Start</span><span class="token punctuation">(</span>a<span class="token punctuation">.</span>logCtx<span class="token punctuation">,</span> spec<span class="token punctuation">,</span> sproto<span class="token punctuation">.</span>ResourcesRuntimeInfo<span class="token punctuation">&#123;</span>
+                Token<span class="token punctuation">:</span>        token<span class="token punctuation">,</span>
+                AgentRank<span class="token punctuation">:</span>    a<span class="token punctuation">.</span>resources<span class="token punctuation">[</span>cID<span class="token punctuation">]</span><span class="token punctuation">.</span>Rank<span class="token punctuation">,</span>
+                IsMultiAgent<span class="token punctuation">:</span> <span class="token function">len</span><span class="token punctuation">(</span>a<span class="token punctuation">.</span>resources<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">1</span><span class="token punctuation">,</span>
+            <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">return</span> fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"starting resources (%v): %w"</span><span class="token punctuation">,</span> r<span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>Start</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/resource_pool.go</span>
+
+<span class="token comment">// Start notifies the pods actor that it should launch a pod for the provided task spec.</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>p k8sPodResources<span class="token punctuation">)</span> <span class="token function">Start</span><span class="token punctuation">(</span>
+    logCtx logger<span class="token punctuation">.</span>Context<span class="token punctuation">,</span> spec tasks<span class="token punctuation">.</span>TaskSpec<span class="token punctuation">,</span> rri sproto<span class="token punctuation">.</span>ResourcesRuntimeInfo<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 调用podSservice的StartTaskPod</span>
+    <span class="token keyword">return</span> p<span class="token punctuation">.</span>podsService<span class="token punctuation">.</span><span class="token function">StartTaskPod</span><span class="token punctuation">(</span>StartTaskPod<span class="token punctuation">&#123;</span>
+        Req<span class="token punctuation">:</span>          p<span class="token punctuation">.</span>req<span class="token punctuation">,</span>
+        AllocationID<span class="token punctuation">:</span> p<span class="token punctuation">.</span>req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">,</span>
+        Spec<span class="token punctuation">:</span>         spec<span class="token punctuation">,</span>
+        Slots<span class="token punctuation">:</span>        p<span class="token punctuation">.</span>slots<span class="token punctuation">,</span>
+        Rank<span class="token punctuation">:</span>         rri<span class="token punctuation">.</span>AgentRank<span class="token punctuation">,</span>
+        Namespace<span class="token punctuation">:</span>    p<span class="token punctuation">.</span>namespace<span class="token punctuation">,</span>
+        LogContext<span class="token punctuation">:</span>   logCtx<span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>StartTaskPod</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/pods.go</span>
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>p <span class="token operator">*</span>pods<span class="token punctuation">)</span> <span class="token function">StartTaskPod</span><span class="token punctuation">(</span>msg StartTaskPod<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    p<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">defer</span> p<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token comment">// 执行接受启动任务</span>
+    <span class="token keyword">return</span> p<span class="token punctuation">.</span><span class="token function">receiveStartTaskPod</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>receiveStartTaskPod</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/pods.go</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>p <span class="token operator">*</span>pods<span class="token punctuation">)</span> <span class="token function">receiveStartTaskPod</span><span class="token punctuation">(</span>msg StartTaskPod<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// podHandle启动pod</span>
+    err <span class="token operator">:=</span> newPodHandler<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"creating pod: %w"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>start</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>p <span class="token operator">*</span>pod<span class="token punctuation">)</span> <span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> p<span class="token punctuation">.</span>restore <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> p<span class="token punctuation">.</span>container<span class="token punctuation">.</span>State <span class="token operator">==</span> cproto<span class="token punctuation">.</span>Running <span class="token punctuation">&#123;</span>
+            err <span class="token operator">:=</span> p<span class="token punctuation">.</span><span class="token function">startPodLogStreamer</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 创建pod并提交</span>
+        <span class="token keyword">if</span> err <span class="token operator">:=</span> p<span class="token punctuation">.</span><span class="token function">createPodSpecAndSubmit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"creating pod spec: %w"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>createPodSpecAndSubmit</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/pod.go</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>p <span class="token operator">*</span>pod<span class="token punctuation">)</span> <span class="token function">createPodSpecAndSubmit</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 创建k8spod的配置</span>
+    <span class="token keyword">if</span> err <span class="token operator">:=</span> p<span class="token punctuation">.</span><span class="token function">createPodSpec</span><span class="token punctuation">(</span>p<span class="token punctuation">.</span>scheduler<span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> err
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 调用资源请求队列的创建资源</span>
+    p<span class="token punctuation">.</span>resourceRequestQueue<span class="token punctuation">.</span><span class="token function">createKubernetesResources</span><span class="token punctuation">(</span>p<span class="token punctuation">.</span>pod<span class="token punctuation">,</span> p<span class="token punctuation">.</span>configMap<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>createKubernetesResources</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/request_queue.go</span>
+<span class="token keyword">func</span> <span class="token punctuation">(</span>r <span class="token operator">*</span>requestQueue<span class="token punctuation">)</span> <span class="token function">createKubernetesResources</span><span class="token punctuation">(</span>
+    podSpec <span class="token operator">*</span>k8sV1<span class="token punctuation">.</span>Pod<span class="token punctuation">,</span>
+    configMapSpec <span class="token operator">*</span>k8sV1<span class="token punctuation">.</span>ConfigMap<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 发送创建消息工作ch，资源申请创建完成，</span>
+    <span class="token keyword">select</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">case</span> r<span class="token punctuation">.</span>workerChan <span class="token operator">&lt;-</span> msg<span class="token punctuation">:</span>
+        r<span class="token punctuation">.</span>creationInProgress<span class="token punctuation">.</span><span class="token function">Insert</span><span class="token punctuation">(</span>ref<span class="token punctuation">)</span>
+    <span class="token keyword">default</span><span class="token punctuation">:</span>
+        queuedRequest <span class="token operator">:=</span> <span class="token operator">&amp;</span>queuedResourceRequest<span class="token punctuation">&#123;</span>createResources<span class="token punctuation">:</span> <span class="token operator">&amp;</span>msg<span class="token punctuation">&#125;</span>
+        r<span class="token punctuation">.</span>queue <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>r<span class="token punctuation">.</span>queue<span class="token punctuation">,</span> queuedRequest<span class="token punctuation">)</span>
+        r<span class="token punctuation">.</span>pendingResourceCreations<span class="token punctuation">[</span>ref<span class="token punctuation">]</span> <span class="token operator">=</span> queuedRequest
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h5 id="buiuldRM"><a href="#buiuldRM" class="headerlink" title="buiuldRM"></a>buiuldRM</h5><ul>
+<li>上面最终发给了一个workchan，workchan是在<code>Run</code>中的<code>buuldRM</code>中初始化</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/core.go</span>
+
+<span class="token keyword">func</span> <span class="token function">buildRM</span><span class="token punctuation">(</span>
+    db <span class="token operator">*</span>db<span class="token punctuation">.</span>PgDB<span class="token punctuation">,</span>
+    echo <span class="token operator">*</span>echo<span class="token punctuation">.</span>Echo<span class="token punctuation">,</span>
+    rmConfigs <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">*</span>config<span class="token punctuation">.</span>ResourceManagerWithPoolsConfig<span class="token punctuation">,</span>
+    tcd <span class="token operator">*</span>model<span class="token punctuation">.</span>TaskContainerDefaultsConfig<span class="token punctuation">,</span>
+    opts <span class="token operator">*</span>aproto<span class="token punctuation">.</span>MasterSetAgentOptions<span class="token punctuation">,</span>
+    cert <span class="token operator">*</span>tls<span class="token punctuation">.</span>Certificate<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">(</span>rm<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token function">len</span><span class="token punctuation">(</span>rmConfigs<span class="token punctuation">)</span> <span class="token operator">&lt;=</span> <span class="token number">1</span> <span class="token punctuation">&#123;</span>
+        config <span class="token operator">:=</span> rmConfigs<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+        <span class="token keyword">switch</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">case</span> config<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">.</span>AgentRM <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> agentrm<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>db<span class="token punctuation">,</span> echo<span class="token punctuation">,</span> config<span class="token punctuation">,</span> opts<span class="token punctuation">,</span> cert<span class="token punctuation">)</span>
+        <span class="token keyword">case</span> config<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">.</span>KubernetesRM <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> kubernetesrm<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>db<span class="token punctuation">,</span> config<span class="token punctuation">,</span> tcd<span class="token punctuation">,</span> opts<span class="token punctuation">,</span> cert<span class="token punctuation">)</span>
+        <span class="token keyword">case</span> config<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">.</span>DispatcherRM <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">,</span>
+            config<span class="token punctuation">.</span>ResourceManager<span class="token punctuation">.</span>PbsRM <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">:</span>
+            license<span class="token punctuation">.</span><span class="token function">RequireLicense</span><span class="token punctuation">(</span><span class="token string">"dispatcher resource manager"</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> dispatcherrm<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>db<span class="token punctuation">,</span> echo<span class="token punctuation">,</span> config<span class="token punctuation">,</span> opts<span class="token punctuation">,</span> cert<span class="token punctuation">)</span>
+        <span class="token keyword">default</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> <span class="token boolean">nil</span><span class="token punctuation">,</span> fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"no expected resource manager config is defined"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">return</span> multirm<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span>defaultRMName<span class="token punctuation">,</span> rms<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>kubernetesrm.New</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// New returns a new ResourceManager, which communicates with</span>
+<span class="token comment">// and submits work to a Kubernetes apiserver.</span>
+<span class="token keyword">func</span> <span class="token function">New</span><span class="token punctuation">(</span>
+    db <span class="token operator">*</span>db<span class="token punctuation">.</span>PgDB<span class="token punctuation">,</span>
+    rmConfigs <span class="token operator">*</span>config<span class="token punctuation">.</span>ResourceManagerWithPoolsConfig<span class="token punctuation">,</span>
+    taskContainerDefaults <span class="token operator">*</span>model<span class="token punctuation">.</span>TaskContainerDefaultsConfig<span class="token punctuation">,</span>
+    opts <span class="token operator">*</span>aproto<span class="token punctuation">.</span>MasterSetAgentOptions<span class="token punctuation">,</span>
+    cert <span class="token operator">*</span>tls<span class="token punctuation">.</span>Certificate<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>ResourceManager<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+    poolNamespaces <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token keyword">range</span> k<span class="token punctuation">.</span>poolsConfig <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> k<span class="token punctuation">.</span>poolsConfig<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>KubernetesNamespace <span class="token operator">==</span> <span class="token string">""</span> <span class="token punctuation">&#123;</span>
+            k<span class="token punctuation">.</span>poolsConfig<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>KubernetesNamespace <span class="token operator">=</span> k<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Namespace
+        <span class="token punctuation">&#125;</span>
+
+        poolNamespaces<span class="token punctuation">[</span>k<span class="token punctuation">.</span>poolsConfig<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>KubernetesNamespace<span class="token punctuation">]</span> <span class="token operator">=</span> k<span class="token punctuation">.</span>poolsConfig<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">.</span>PoolName
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 创建一个新的podserver</span>
+    k<span class="token punctuation">.</span>podsService <span class="token operator">=</span> <span class="token function">newPodsService</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> poolConfig <span class="token operator">:=</span> <span class="token keyword">range</span> k<span class="token punctuation">.</span>poolsConfig <span class="token punctuation">&#123;</span>
+        poolConfig <span class="token operator">:=</span> poolConfig
+        rp <span class="token operator">:=</span> <span class="token function">newResourcePool</span><span class="token punctuation">(</span>maxSlotsPerPod<span class="token punctuation">,</span> <span class="token operator">&amp;</span>poolConfig<span class="token punctuation">,</span> k<span class="token punctuation">.</span>podsService<span class="token punctuation">,</span> k<span class="token punctuation">.</span>db<span class="token punctuation">)</span>
+        <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 隔一段时间就从处理 rqelist 中的创建任务</span>
+            t <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">NewTicker</span><span class="token punctuation">(</span>podSubmissionInterval<span class="token punctuation">)</span>
+            <span class="token keyword">defer</span> t<span class="token punctuation">.</span><span class="token function">Stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">for</span> <span class="token keyword">range</span> t<span class="token punctuation">.</span>C <span class="token punctuation">&#123;</span>
+                <span class="token comment">// 调度任务并发布消息</span>
+                rp<span class="token punctuation">.</span><span class="token function">Schedule</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        k<span class="token punctuation">.</span>pools<span class="token punctuation">[</span>poolConfig<span class="token punctuation">.</span>PoolName<span class="token punctuation">]</span> <span class="token operator">=</span> rp
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> k<span class="token punctuation">,</span> <span class="token boolean">nil</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h6 id="newPodsService"><a href="#newPodsService" class="headerlink" title="newPodsService"></a>newPodsService</h6><ul>
+<li>newPodsService</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/pods.go</span>
+
+<span class="token comment">// newPodsService creates a new pod service for launching, querying and interacting with k8s pods.</span>
+<span class="token keyword">func</span> <span class="token function">newPodsService</span><span class="token punctuation">(</span>
+    namespace <span class="token builtin">string</span><span class="token punctuation">,</span>
+    namespaceToPoolName <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">,</span>
+    masterServiceName <span class="token builtin">string</span><span class="token punctuation">,</span>
+    masterTLSConfig model<span class="token punctuation">.</span>TLSClientConfig<span class="token punctuation">,</span>
+    loggingConfig model<span class="token punctuation">.</span>LoggingConfig<span class="token punctuation">,</span>
+    scheduler <span class="token builtin">string</span><span class="token punctuation">,</span>
+    slotType device<span class="token punctuation">.</span>Type<span class="token punctuation">,</span>
+    slotResourceRequests config<span class="token punctuation">.</span>PodSlotResourceRequests<span class="token punctuation">,</span>
+    resourcePoolConfigs <span class="token punctuation">[</span><span class="token punctuation">]</span>config<span class="token punctuation">.</span>ResourcePoolConfig<span class="token punctuation">,</span>
+    taskContainerDefaults <span class="token operator">*</span>model<span class="token punctuation">.</span>TaskContainerDefaultsConfig<span class="token punctuation">,</span>
+    detMasterIP <span class="token builtin">string</span><span class="token punctuation">,</span>
+    detMasterPort <span class="token builtin">int32</span><span class="token punctuation">,</span>
+    kubeconfigPath <span class="token builtin">string</span><span class="token punctuation">,</span>
+    podStatusUpdateCallback podStatusUpdateCallback<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token operator">*</span>pods <span class="token punctuation">&#123;</span>
+    loggingTLSConfig <span class="token operator">:=</span> masterTLSConfig
+    <span class="token keyword">if</span> loggingConfig<span class="token punctuation">.</span>ElasticLoggingConfig <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        loggingTLSConfig <span class="token operator">=</span> loggingConfig<span class="token punctuation">.</span>ElasticLoggingConfig<span class="token punctuation">.</span>Security<span class="token punctuation">.</span>TLS
+    <span class="token punctuation">&#125;</span>
+    p <span class="token operator">:=</span> <span class="token operator">&amp;</span>pods<span class="token punctuation">&#123;</span>
+        wg<span class="token punctuation">:</span> waitgroupx<span class="token punctuation">.</span><span class="token function">WithContext</span><span class="token punctuation">(</span>context<span class="token punctuation">.</span><span class="token function">Background</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+        namespace<span class="token punctuation">:</span>                    namespace<span class="token punctuation">,</span>
+        namespaceToPoolName<span class="token punctuation">:</span>          namespaceToPoolName<span class="token punctuation">,</span>
+        masterServiceName<span class="token punctuation">:</span>            masterServiceName<span class="token punctuation">,</span>
+        masterTLSConfig<span class="token punctuation">:</span>              masterTLSConfig<span class="token punctuation">,</span>
+        scheduler<span class="token punctuation">:</span>                    scheduler<span class="token punctuation">,</span>
+        loggingTLSConfig<span class="token punctuation">:</span>             loggingTLSConfig<span class="token punctuation">,</span>
+        loggingConfig<span class="token punctuation">:</span>                loggingConfig<span class="token punctuation">,</span>
+        podNameToPodHandler<span class="token punctuation">:</span>          <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">*</span>pod<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        podNameToResourcePool<span class="token punctuation">:</span>        <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        containerIDToPodName<span class="token punctuation">:</span>         <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        containerIDToSchedulingState<span class="token punctuation">:</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>sproto<span class="token punctuation">.</span>SchedulingState<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        podNameToContainerID<span class="token punctuation">:</span>         <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        podHandlerToMetadata<span class="token punctuation">:</span>         <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token operator">*</span>pod<span class="token punctuation">]</span>podMetadata<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        slotType<span class="token punctuation">:</span>                     slotType<span class="token punctuation">,</span>
+        slotResourceRequests<span class="token punctuation">:</span>         slotResourceRequests<span class="token punctuation">,</span>
+        resourcePoolConfigs<span class="token punctuation">:</span>          resourcePoolConfigs<span class="token punctuation">,</span>
+        baseContainerDefaults<span class="token punctuation">:</span>        taskContainerDefaults<span class="token punctuation">,</span>
+        detMasterIP<span class="token punctuation">:</span>                  detMasterIP<span class="token punctuation">,</span>
+        detMasterPort<span class="token punctuation">:</span>                detMasterPort<span class="token punctuation">,</span>
+        currentNodes<span class="token punctuation">:</span>                 <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">*</span>k8sV1<span class="token punctuation">.</span>Node<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        nodeToSystemResourceRequests<span class="token punctuation">:</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span><span class="token builtin">int64</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        podInterfaces<span class="token punctuation">:</span>                <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>typedV1<span class="token punctuation">.</span>PodInterface<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        configMapInterfaces<span class="token punctuation">:</span>          <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>typedV1<span class="token punctuation">.</span>ConfigMapInterface<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        syslog<span class="token punctuation">:</span>                       logrus<span class="token punctuation">.</span><span class="token function">WithField</span><span class="token punctuation">(</span><span class="token string">"namespace"</span><span class="token punctuation">,</span> namespace<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        podStatusUpdateCallback<span class="token punctuation">:</span>      podStatusUpdateCallback<span class="token punctuation">,</span>
+
+        kubeconfigPath<span class="token punctuation">:</span> kubeconfigPath<span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 初始化k8s客户端</span>
+    <span class="token keyword">if</span> err <span class="token operator">:=</span> p<span class="token punctuation">.</span><span class="token function">startClientSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> err <span class="token operator">:=</span> p<span class="token punctuation">.</span><span class="token function">getMasterIPAndPort</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> err <span class="token operator">:=</span> p<span class="token punctuation">.</span><span class="token function">getSystemResourceRequests</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 启动资源请求队列</span>
+    <span class="token comment">// 这里会创建一些woker 这些work监听workerChan发送过来的请求</span>
+    p<span class="token punctuation">.</span><span class="token function">startResourceRequestQueue</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment">// 启动pod的Informer</span>
+    err <span class="token operator">:=</span> p<span class="token punctuation">.</span><span class="token function">startPodInformer</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token comment">// 启动node的Informer</span>
+    err <span class="token operator">=</span> p<span class="token punctuation">.</span><span class="token function">startNodeInformer</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">switch</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">case</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token operator">&amp;&amp;</span> k8error<span class="token punctuation">.</span><span class="token function">IsForbidden</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">case</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">:</span>
+        <span class="token function">panic</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// k8s 事件监听</span>
+    err <span class="token operator">=</span> p<span class="token punctuation">.</span><span class="token function">startEventListeners</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    err <span class="token operator">=</span> p<span class="token punctuation">.</span><span class="token function">startPreemptionListeners</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> p
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>startResourceRequestQueue</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/pods.go</span>
+
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>p <span class="token operator">*</span>pods<span class="token punctuation">)</span> <span class="token function">startResourceRequestQueue</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    failures <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> resourcesRequestFailure<span class="token punctuation">,</span> <span class="token number">16</span><span class="token punctuation">)</span>
+    <span class="token comment">// 启动请求队列</span>
+    p<span class="token punctuation">.</span>resourceRequestQueue <span class="token operator">=</span> <span class="token function">startRequestQueue</span><span class="token punctuation">(</span>p<span class="token punctuation">.</span>podInterfaces<span class="token punctuation">,</span> p<span class="token punctuation">.</span>configMapInterfaces<span class="token punctuation">,</span> failures<span class="token punctuation">)</span>
+    p<span class="token punctuation">.</span>wg<span class="token punctuation">.</span><span class="token function">Go</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span>ctx context<span class="token punctuation">.</span>Context<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">select</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">case</span> failure <span class="token operator">:=</span> <span class="token operator">&lt;-</span>failures<span class="token punctuation">:</span>
+                <span class="token comment">// 处理情况</span>
+                p<span class="token punctuation">.</span><span class="token function">handleResourceRequestFailure</span><span class="token punctuation">(</span>failure<span class="token punctuation">)</span>
+            <span class="token keyword">case</span> <span class="token operator">&lt;-</span>ctx<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">return</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/pods.go</span>
+
+<span class="token keyword">func</span> <span class="token function">startRequestQueue</span><span class="token punctuation">(</span>
+    podInterfaces <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>typedV1<span class="token punctuation">.</span>PodInterface<span class="token punctuation">,</span>
+    configMapInterfaces <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>typedV1<span class="token punctuation">.</span>ConfigMapInterface<span class="token punctuation">,</span>
+    failures <span class="token keyword">chan</span><span class="token operator">&lt;-</span> resourcesRequestFailure<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token operator">*</span>requestQueue <span class="token punctuation">&#123;</span>
+    r <span class="token operator">:=</span> <span class="token operator">&amp;</span>requestQueue<span class="token punctuation">&#123;</span>
+        podInterfaces<span class="token punctuation">:</span>       podInterfaces<span class="token punctuation">,</span>
+        configMapInterfaces<span class="token punctuation">:</span> configMapInterfaces<span class="token punctuation">,</span>
+        failures<span class="token punctuation">:</span>            failures<span class="token punctuation">,</span>
+
+        workerChan<span class="token punctuation">:</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+        queue<span class="token punctuation">:</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token operator">*</span>queuedResourceRequest<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+        creationInProgress<span class="token punctuation">:</span>       <span class="token function">make</span><span class="token punctuation">(</span>set<span class="token punctuation">.</span>Set<span class="token punctuation">[</span>requestID<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        pendingResourceCreations<span class="token punctuation">:</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span>requestID<span class="token punctuation">]</span><span class="token operator">*</span>queuedResourceRequest<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        blockedResourceDeletions<span class="token punctuation">:</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">map</span><span class="token punctuation">[</span>requestID<span class="token punctuation">]</span><span class="token operator">*</span>queuedResourceRequest<span class="token punctuation">)</span><span class="token punctuation">,</span>
+
+        syslog<span class="token punctuation">:</span> logrus<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">WithField</span><span class="token punctuation">(</span><span class="token string">"component"</span><span class="token punctuation">,</span> <span class="token string">"kubernetesrm-queue"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 启动workers</span>
+    r<span class="token punctuation">.</span><span class="token function">startWorkers</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> r
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>startWorkers</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/pods.go</span>
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>r <span class="token operator">*</span>requestQueue<span class="token punctuation">)</span> <span class="token function">startWorkers</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 根据numKubernetesWorkers来开启worker</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> numKubernetesWorkers<span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        <span class="token function">startRequestProcessingWorker</span><span class="token punctuation">(</span>
+            r<span class="token punctuation">.</span>podInterfaces<span class="token punctuation">,</span>
+            r<span class="token punctuation">.</span>configMapInterfaces<span class="token punctuation">,</span>
+            strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span>
+            r<span class="token punctuation">.</span>workerChan<span class="token punctuation">,</span>
+            r<span class="token punctuation">.</span>workerReady<span class="token punctuation">,</span>
+            r<span class="token punctuation">.</span>failures<span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>startRequestProcessingWorker</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/request_workers.go</span>
+<span class="token keyword">func</span> <span class="token function">startRequestProcessingWorker</span><span class="token punctuation">(</span>
+    podInterfaces <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>typedV1<span class="token punctuation">.</span>PodInterface<span class="token punctuation">,</span>
+    configMapInterfaces <span class="token keyword">map</span><span class="token punctuation">[</span><span class="token builtin">string</span><span class="token punctuation">]</span>typedV1<span class="token punctuation">.</span>ConfigMapInterface<span class="token punctuation">,</span>
+    id <span class="token builtin">string</span><span class="token punctuation">,</span>
+    in <span class="token operator">&lt;-</span><span class="token keyword">chan</span> <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    ready readyCallbackFunc<span class="token punctuation">,</span>
+    failures <span class="token keyword">chan</span><span class="token operator">&lt;-</span> resourcesRequestFailure<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token operator">*</span>requestProcessingWorker <span class="token punctuation">&#123;</span>
+    syslog <span class="token operator">:=</span> logrus<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">WithField</span><span class="token punctuation">(</span><span class="token string">"component"</span><span class="token punctuation">,</span> <span class="token string">"kubernetesrm-worker"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">WithField</span><span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">,</span> id<span class="token punctuation">)</span>
+    r <span class="token operator">:=</span> <span class="token operator">&amp;</span>requestProcessingWorker<span class="token punctuation">&#123;</span>
+        podInterfaces<span class="token punctuation">:</span>       podInterfaces<span class="token punctuation">,</span>
+        configMapInterfaces<span class="token punctuation">:</span> configMapInterfaces<span class="token punctuation">,</span>
+        failures<span class="token punctuation">:</span>            failures<span class="token punctuation">,</span>
+        syslog<span class="token punctuation">:</span>              syslog<span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 接受请求并处理</span>
+    <span class="token keyword">go</span> r<span class="token punctuation">.</span><span class="token function">receive</span><span class="token punctuation">(</span>in<span class="token punctuation">,</span> ready<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> r
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>receive</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>r <span class="token operator">*</span>requestProcessingWorker<span class="token punctuation">)</span> <span class="token function">receive</span><span class="token punctuation">(</span>in <span class="token operator">&lt;-</span><span class="token keyword">chan</span> <span class="token keyword">interface</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> ready readyCallbackFunc<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">go</span> <span class="token function">ready</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span>
+    <span class="token keyword">for</span> msg <span class="token operator">:=</span> <span class="token keyword">range</span> in <span class="token punctuation">&#123;</span>
+        <span class="token keyword">switch</span> msg <span class="token operator">:=</span> msg<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token keyword">type</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">case</span> createKubernetesResources<span class="token punctuation">:</span>
+            <span class="token comment">// 创建资源事件</span>
+            r<span class="token punctuation">.</span><span class="token function">receiveCreateKubernetesResources</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+            <span class="token keyword">go</span> <span class="token function">ready</span><span class="token punctuation">(</span><span class="token function">keyForCreate</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token keyword">case</span> deleteKubernetesResources<span class="token punctuation">:</span>
+            r<span class="token punctuation">.</span><span class="token function">receiveDeleteKubernetesResources</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+            <span class="token keyword">go</span> <span class="token function">ready</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span>
+        <span class="token keyword">default</span><span class="token punctuation">:</span>
+            errStr <span class="token operator">:=</span> fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">"unexpected message %T"</span><span class="token punctuation">,</span> msg<span class="token punctuation">)</span>
+            r<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span>errStr<span class="token punctuation">)</span>
+            <span class="token function">panic</span><span class="token punctuation">(</span>errStr<span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>receiveCreateKubernetesResources,到这里完成整个资源的创建</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// master/internal/rm/kubernetesrm/request_workers.go</span>
+
+<span class="token keyword">func</span> <span class="token punctuation">(</span>r <span class="token operator">*</span>requestProcessingWorker<span class="token punctuation">)</span> <span class="token function">receiveCreateKubernetesResources</span><span class="token punctuation">(</span>
+    msg createKubernetesResources<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    r<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">Debugf</span><span class="token punctuation">(</span><span class="token string">"creating configMap with spec %v"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>configMapSpec<span class="token punctuation">)</span>
+    <span class="token comment">// 创建configmap</span>
+    configMap<span class="token punctuation">,</span> err <span class="token operator">:=</span> r<span class="token punctuation">.</span>configMapInterfaces<span class="token punctuation">[</span>msg<span class="token punctuation">.</span>podSpec<span class="token punctuation">.</span>Namespace<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span>
+        context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>configMapSpec<span class="token punctuation">,</span> metaV1<span class="token punctuation">.</span>CreateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        r<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">WithError</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"error creating configMap %s"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>configMapSpec<span class="token punctuation">.</span>Name<span class="token punctuation">)</span>
+        r<span class="token punctuation">.</span>failures <span class="token operator">&lt;-</span> resourceCreationFailed<span class="token punctuation">&#123;</span>podName<span class="token punctuation">:</span> msg<span class="token punctuation">.</span>podSpec<span class="token punctuation">.</span>Name<span class="token punctuation">,</span> err<span class="token punctuation">:</span> err<span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span>
+    <span class="token punctuation">&#125;</span>
+    r<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">Infof</span><span class="token punctuation">(</span><span class="token string">"created configMap %s"</span><span class="token punctuation">,</span> configMap<span class="token punctuation">.</span>Name<span class="token punctuation">)</span>
+
+    r<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">Debugf</span><span class="token punctuation">(</span><span class="token string">"launching pod with spec %v"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>podSpec<span class="token punctuation">)</span>
+    <span class="token comment">// 创建pod</span>
+    pod<span class="token punctuation">,</span> err <span class="token operator">:=</span> r<span class="token punctuation">.</span>podInterfaces<span class="token punctuation">[</span>msg<span class="token punctuation">.</span>podSpec<span class="token punctuation">.</span>Namespace<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span>
+        context<span class="token punctuation">.</span><span class="token function">TODO</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>podSpec<span class="token punctuation">,</span> metaV1<span class="token punctuation">.</span>CreateOptions<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+        r<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">WithError</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"error creating pod %s"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>podSpec<span class="token punctuation">.</span>Name<span class="token punctuation">)</span>
+        r<span class="token punctuation">.</span>failures <span class="token operator">&lt;-</span> resourceCreationFailed<span class="token punctuation">&#123;</span>podName<span class="token punctuation">:</span> msg<span class="token punctuation">.</span>podSpec<span class="token punctuation">.</span>Name<span class="token punctuation">,</span> err<span class="token punctuation">:</span> err<span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span>
+    <span class="token punctuation">&#125;</span>
+    r<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">Infof</span><span class="token punctuation">(</span><span class="token string">"created pod %s"</span><span class="token punctuation">,</span> pod<span class="token punctuation">.</span>Name<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h6 id="Schedule"><a href="#Schedule" class="headerlink" title="Schedule"></a>Schedule</h6><ul>
+<li>将定期处理reqlist中的任务</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// New returns a new ResourceManager, which communicates with</span>
+<span class="token comment">// and submits work to a Kubernetes apiserver.</span>
+<span class="token keyword">func</span> <span class="token function">New</span><span class="token punctuation">(</span>
+    db <span class="token operator">*</span>db<span class="token punctuation">.</span>PgDB<span class="token punctuation">,</span>
+    rmConfigs <span class="token operator">*</span>config<span class="token punctuation">.</span>ResourceManagerWithPoolsConfig<span class="token punctuation">,</span>
+    taskContainerDefaults <span class="token operator">*</span>model<span class="token punctuation">.</span>TaskContainerDefaultsConfig<span class="token punctuation">,</span>
+    opts <span class="token operator">*</span>aproto<span class="token punctuation">.</span>MasterSetAgentOptions<span class="token punctuation">,</span>
+    cert <span class="token operator">*</span>tls<span class="token punctuation">.</span>Certificate<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token operator">*</span>ResourceManager<span class="token punctuation">,</span> <span class="token builtin">error</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<span class="token comment">/*
+
+*/</span>
+        <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            t <span class="token operator">:=</span> time<span class="token punctuation">.</span><span class="token function">NewTicker</span><span class="token punctuation">(</span>podSubmissionInterval<span class="token punctuation">)</span>
+            <span class="token keyword">defer</span> t<span class="token punctuation">.</span><span class="token function">Stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">for</span> <span class="token keyword">range</span> t<span class="token punctuation">.</span>C <span class="token punctuation">&#123;</span>
+                <span class="token comment">// 这里处理retlist</span>
+                rp<span class="token punctuation">.</span><span class="token function">Schedule</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>Schedule</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>kubernetesResourcePool<span class="token punctuation">)</span> <span class="token function">Schedule</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    k<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">defer</span> k<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">if</span> k<span class="token punctuation">.</span>reschedule <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 调度等待的任务</span>
+        k<span class="token punctuation">.</span><span class="token function">schedulePendingTasks</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    k<span class="token punctuation">.</span>reschedule <span class="token operator">=</span> <span class="token boolean">false</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>schedulePendingTasks</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>kubernetesResourcePool<span class="token punctuation">)</span> <span class="token function">schedulePendingTasks</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 遍历 reqList中的所有任务</span>
+    <span class="token keyword">for</span> it <span class="token operator">:=</span> k<span class="token punctuation">.</span>reqList<span class="token punctuation">.</span><span class="token function">Iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> it<span class="token punctuation">.</span><span class="token function">Next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">&#123;</span>
+        req <span class="token operator">:=</span> it<span class="token punctuation">.</span><span class="token function">Value</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        group <span class="token operator">:=</span> k<span class="token punctuation">.</span>groups<span class="token punctuation">[</span>req<span class="token punctuation">.</span>JobID<span class="token punctuation">]</span>
+        <span class="token keyword">if</span> group <span class="token operator">==</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+            k<span class="token punctuation">.</span>syslog<span class="token punctuation">.</span><span class="token function">Warnf</span><span class="token punctuation">(</span><span class="token string">"schedulePendingTasks cannot find group for job %s"</span><span class="token punctuation">,</span> req<span class="token punctuation">.</span>JobID<span class="token punctuation">)</span>
+            <span class="token keyword">continue</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">if</span> <span class="token operator">!</span>k<span class="token punctuation">.</span>reqList<span class="token punctuation">.</span><span class="token function">IsScheduled</span><span class="token punctuation">(</span>req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> maxSlots <span class="token operator">:=</span> group<span class="token punctuation">.</span>MaxSlots<span class="token punctuation">;</span> maxSlots <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> k<span class="token punctuation">.</span>slotsUsedPerGroup<span class="token punctuation">[</span>group<span class="token punctuation">]</span><span class="token operator">+</span>req<span class="token punctuation">.</span>SlotsNeeded <span class="token operator">></span> <span class="token operator">*</span>maxSlots <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">continue</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token comment">// 分配资源</span>
+            k<span class="token punctuation">.</span><span class="token function">assignResources</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>assignResources</li>
+</ul>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword">func</span> <span class="token punctuation">(</span>k <span class="token operator">*</span>kubernetesResourcePool<span class="token punctuation">)</span> <span class="token function">assignResources</span><span class="token punctuation">(</span>
+    req <span class="token operator">*</span>sproto<span class="token punctuation">.</span>AllocateRequest<span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+<span class="token comment">/*
+    分配资源逻辑
+*/</span>
+
+    allocations <span class="token operator">:=</span> sproto<span class="token punctuation">.</span>ResourceList<span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    <span class="token keyword">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> rs <span class="token operator">:=</span> <span class="token keyword">range</span> resources <span class="token punctuation">&#123;</span>
+        allocations<span class="token punctuation">[</span>rs<span class="token punctuation">.</span><span class="token function">Summary</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ResourcesID<span class="token punctuation">]</span> <span class="token operator">=</span> rs
+        k<span class="token punctuation">.</span>allocationIDToContainerID<span class="token punctuation">[</span>req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">]</span> <span class="token operator">=</span> rs<span class="token punctuation">.</span>containerID
+        k<span class="token punctuation">.</span>containerIDtoAllocationID<span class="token punctuation">[</span>rs<span class="token punctuation">.</span>containerID<span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> req<span class="token punctuation">.</span>AllocationID
+    <span class="token punctuation">&#125;</span>
+
+    assigned <span class="token operator">:=</span> sproto<span class="token punctuation">.</span>ResourcesAllocated<span class="token punctuation">&#123;</span>
+        ID<span class="token punctuation">:</span>                req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">,</span>
+        Resources<span class="token punctuation">:</span>         allocations<span class="token punctuation">,</span>
+        JobSubmissionTime<span class="token punctuation">:</span> req<span class="token punctuation">.</span>JobSubmissionTime<span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 添加套reqList中已分配列表中</span>
+    k<span class="token punctuation">.</span>reqList<span class="token punctuation">.</span><span class="token function">AddAllocationRaw</span><span class="token punctuation">(</span>req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">,</span> <span class="token operator">&amp;</span>assigned<span class="token punctuation">)</span>
+    <span class="token comment">// 发布分配完成的消息</span>
+    rmevents<span class="token punctuation">.</span><span class="token function">Publish</span><span class="token punctuation">(</span>req<span class="token punctuation">.</span>AllocationID<span class="token punctuation">,</span> assigned<span class="token punctuation">.</span><span class="token function">Clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ai/" rel="tag"># ai</a>
+              <a href="/tags/go/" rel="tag"># go</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/06/25/%E4%BD%BF%E7%94%A8docker-registry%E9%83%A8%E7%BD%B2docker%E5%8A%A0%E9%80%9F%E4%BB%93%E5%BA%93/" rel="prev" title="使用docker-registry部署docker加速仓库">
+                  <i class="fa fa-angle-left"></i> 使用docker-registry部署docker加速仓库
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/07/01/lvm%E4%BD%BF%E7%94%A8/" rel="next" title="lvm使用">
+                  lvm使用 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js","integrity":"sha256-stuqcu2FrjYCXDOytWFA5SoUE/r3nkp6gTglzNSlavU="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>

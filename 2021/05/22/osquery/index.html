@@ -20,29 +20,27 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.23.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="CDI(container device interface)是一个容器运行时支持第三方设备的一个规范，类似CNI一样对添加设备进行抽象">
+    <meta name="description" content="osquery是一个由FaceBook开源用于对系统进行查询、监控以及分析的一款软件，其最意思的地方是使用sql来查询系统的一些信息">
 <meta property="og:type" content="article">
-<meta property="og:title" content="cdi">
-<meta property="og:url" content="http://blog.naturelr.cc/2024/07/10/cdi/index.html">
+<meta property="og:title" content="osquery">
+<meta property="og:url" content="http://blog.naturelr.cc/2021/05/22/osquery/index.html">
 <meta property="og:site_name" content="Nature丿灵然">
-<meta property="og:description" content="CDI(container device interface)是一个容器运行时支持第三方设备的一个规范，类似CNI一样对添加设备进行抽象">
+<meta property="og:description" content="osquery是一个由FaceBook开源用于对系统进行查询、监控以及分析的一款软件，其最意思的地方是使用sql来查询系统的一些信息">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-07-09T18:04:00.000Z">
-<meta property="article:modified_time" content="2024-08-06T08:41:43.973Z">
+<meta property="article:published_time" content="2021-05-22T16:17:00.000Z">
+<meta property="article:modified_time" content="2025-05-15T10:44:05.793Z">
 <meta property="article:author" content="Nature丿灵然">
-<meta property="article:tag" content="docker">
-<meta property="article:tag" content="k8s">
-<meta property="article:tag" content="gpu">
+<meta property="article:tag" content="工具">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://blog.naturelr.cc/2024/07/10/cdi/">
+<link rel="canonical" href="http://blog.naturelr.cc/2021/05/22/osquery/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2024/07/10/cdi/","path":"2024/07/10/cdi/","title":"cdi"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2021/05/22/osquery/","path":"2021/05/22/osquery/","title":"osquery"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>cdi | Nature丿灵然</title>
+<title>osquery | Nature丿灵然</title>
   
 
 
@@ -163,7 +161,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#nvidia"><span class="nav-number">1.</span> <span class="nav-text">nvidia</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#containerd"><span class="nav-number">2.</span> <span class="nav-text">containerd</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#docker"><span class="nav-number">3.</span> <span class="nav-text">docker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">4.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#macos"><span class="nav-number">1.1.</span> <span class="nav-text">macos</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ubuntu"><span class="nav-number">1.2.</span> <span class="nav-text">ubuntu</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#centos"><span class="nav-number">1.3.</span> <span class="nav-text">centos</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#osqueryi"><span class="nav-number">2.1.</span> <span class="nav-text">osqueryi</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8sql"><span class="nav-number">2.2.</span> <span class="nav-text">常用sql</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -176,7 +174,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">98</span>
+          <span class="site-state-item-count">99</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -217,7 +215,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2024/07/10/cdi/">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2021/05/22/osquery/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -230,12 +228,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="cdi | Nature丿灵然">
+      <meta itemprop="name" content="osquery | Nature丿灵然">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          cdi
+          osquery
         </h1>
 
         <div class="post-meta-container">
@@ -246,14 +244,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2024-07-10 02:04:00" itemprop="dateCreated datePublished" datetime="2024-07-10T02:04:00+08:00">2024-07-10</time>
+      <time title="创建时间：2021-05-23 00:17:00" itemprop="dateCreated datePublished" datetime="2021-05-23T00:17:00+08:00">2021-05-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:43" itemprop="dateModified" datetime="2024-08-06T16:41:43+08:00">2024-08-06</time>
+      <time title="修改时间：2025-05-15 18:44:05" itemprop="dateModified" datetime="2025-05-15T18:44:05+08:00">2025-05-15</time>
     </span>
 
   
@@ -265,33 +263,76 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>CDI(container device interface)是一个容器运行时支持第三方设备的一个规范，类似CNI一样对添加设备进行抽象</p>
+    <div class="post-body" itemprop="articleBody"><p>osquery是一个由FaceBook开源用于对系统进行查询、监控以及分析的一款软件，其最意思的地方是使用sql来查询系统的一些信息</p>
 <span id="more"></span>
 
-<p>现有的情况下添加如gpu的一些设备则需要使用nvidia的runtime来替代默认的runtime，这样只能支持nvidia的gpu方法不通用</p>
-<p>设备由完全限定名称唯一指定，该名称由供应商 ID、设备类别以及每个供应商 ID-设备类别对唯一的名称构成</p>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">vendor.com/class<span class="token operator">=</span>unique_name<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><h5 id="macos"><a href="#macos" class="headerlink" title="macos"></a>macos</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">brew <span class="token function">install</span> <span class="token parameter variable">--cask</span> osquery<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 
-<p>cdi的目录在<code>/etc/cdi</code>和<code>/var/run/cdi</code></p>
-<h4 id="nvidia"><a href="#nvidia" class="headerlink" title="nvidia"></a>nvidia</h4><ul>
-<li>nvidia的ctk</li>
-</ul>
-<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">nvidia-ctk cdi generate <span class="token parameter variable">--output</span><span class="token operator">=</span>/etc/cdi/nvidia.yaml<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h5 id="ubuntu"><a href="#ubuntu" class="headerlink" title="ubuntu"></a>ubuntu</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">OSQUERY_KEY</span><span class="token operator">=</span>1484120AC4E9F8A1A577AEEE97A80C63C9D8B80B
+<span class="token function">sudo</span> apt-key adv <span class="token parameter variable">--keyserver</span> hkp://keyserver.ubuntu.com:80 --recv-keys <span class="token variable">$OSQUERY_KEY</span>
+<span class="token function">sudo</span> add-apt-repository <span class="token string">'deb [arch=amd64] https://pkg.osquery.io/deb deb main'</span>
+<span class="token function">sudo</span> <span class="token function">apt-get</span> update
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> osquery<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h4 id="containerd"><a href="#containerd" class="headerlink" title="containerd"></a>containerd</h4><pre class="line-numbers language-toml" data-language="toml"><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">plugins."io.containerd.grpc.v1.cri"</span><span class="token punctuation">]</span>
-  <span class="token key property">enable_cdi</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
-  <span class="token key property">cdi_spec_dirs</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"/etc/cdi"</span><span class="token punctuation">,</span> <span class="token string">"/var/run/cdi"</span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h5 id="centos"><a href="#centos" class="headerlink" title="centos"></a>centos</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">curl</span> <span class="token parameter variable">-L</span> https://pkg.osquery.io/rpm/GPG <span class="token operator">|</span> <span class="token function">sudo</span> <span class="token function">tee</span> /etc/pki/rpm-gpg/RPM-GPG-KEY-osquery
+<span class="token function">sudo</span> yum-config-manager --add-repo https://pkg.osquery.io/rpm/osquery-s3-rpm.repo
+<span class="token function">sudo</span> yum-config-manager <span class="token parameter variable">--enable</span> osquery-s3-rpm-repo
+<span class="token function">sudo</span> yum <span class="token function">install</span> osquer<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 
-<h4 id="docker"><a href="#docker" class="headerlink" title="docker"></a>docker</h4><ul>
-<li><code>/etc/docker/daemon.json</code>中配置开启cdi,随后重启</li>
-</ul>
-<pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
-  <span class="token property">"features"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
-    <span class="token property">"cdi"</span><span class="token operator">:</span> <span class="token boolean">true</span>
-  <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><blockquote>
+<p>osquery存在两种运行模式，分别是osqueryi(交互式模式类似sqllite)、osqueryd(后台进程模式)。</p>
+</blockquote>
+<h5 id="osqueryi"><a href="#osqueryi" class="headerlink" title="osqueryi"></a>osqueryi</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 进入交互模式</span>
+osqueryi<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 
-<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://github.com/cncf-tags/container-device-interface">https://github.com/cncf-tags/container-device-interface</a><br><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/1180698">https://developer.aliyun.com/article/1180698</a></p>
+<blockquote>
+<p>查看所有的表</p>
+</blockquote>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">.</span><span class="token keyword">table</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>查看dns这个图表的所有内容</p>
+</blockquote>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">.</span><span class="token keyword">all</span> dns_resolvers
+<span class="token keyword">select</span> <span class="token operator">*</span> <span class="token keyword">from</span> dns_resolvers<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>查看dns这个图表的所有内容</p>
+</blockquote>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql">dns_resolvers<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>查看表结构</p>
+</blockquote>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">.</span><span class="token keyword">schema</span> dns_resolvers<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>设置显示模式</p>
+</blockquote>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">.</span>mod csv<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>查看帮助</p>
+</blockquote>
+<pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token punctuation">.</span>help<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h5 id="常用sql"><a href="#常用sql" class="headerlink" title="常用sql"></a>常用sql</h5><pre class="line-numbers language-sql" data-language="sql"><code class="language-sql"><span class="token comment"># 负载</span>
+<span class="token keyword">select</span> period<span class="token punctuation">,</span>average <span class="token keyword">from</span> load_average<span class="token punctuation">;</span>
+
+<span class="token comment"># 内存</span>
+<span class="token keyword">select</span> memory_total<span class="token punctuation">,</span>memory_free<span class="token punctuation">,</span>swap_cached<span class="token punctuation">,</span>active <span class="token keyword">from</span> memory_info<span class="token punctuation">;</span>
+
+<span class="token comment"># 磁盘</span>
+<span class="token keyword">select</span> path<span class="token punctuation">,</span><span class="token keyword">type</span><span class="token punctuation">,</span>blocks<span class="token punctuation">,</span>blocks_free <span class="token keyword">from</span> mounts <span class="token keyword">where</span> blocks<span class="token operator">!=</span><span class="token number">0</span><span class="token punctuation">;</span>
+
+<span class="token comment"># 查询监听0.0.0.0的进程的名字，端口和pid</span>
+<span class="token keyword">SELECT</span> <span class="token keyword">DISTINCT</span> processes<span class="token punctuation">.</span>name<span class="token punctuation">,</span> listening_ports<span class="token punctuation">.</span>port<span class="token punctuation">,</span> processes<span class="token punctuation">.</span>pid
+  <span class="token keyword">FROM</span> listening_ports <span class="token keyword">JOIN</span> processes <span class="token keyword">USING</span> <span class="token punctuation">(</span>pid<span class="token punctuation">)</span>
+  <span class="token keyword">WHERE</span> listening_ports<span class="token punctuation">.</span>address <span class="token operator">=</span> <span class="token string">'0.0.0.0'</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a target="_blank" rel="noopener" href="https://osquery.io/">https://osquery.io/</a></p>
+<p><a target="_blank" rel="noopener" href="http://blog.spoock.com/2018/11/26/osquery-intro/">Spoock’s Blog | osquery初识</a></p>
 
     </div>
 
@@ -301,22 +342,20 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/docker/" rel="tag"># docker</a>
-              <a href="/tags/k8s/" rel="tag"># k8s</a>
-              <a href="/tags/gpu/" rel="tag"># gpu</a>
+              <a href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag"># 工具</a>
           </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2024/07/09/restic%E5%A4%87%E4%BB%BDlinux%E7%9B%AE%E5%BD%95/" rel="prev" title="restic备份linux目录">
-                  <i class="fa fa-angle-left"></i> restic备份linux目录
+                <a href="/2021/05/22/kvm%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/" rel="prev" title="kvm">
+                  <i class="fa fa-angle-left"></i> kvm
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/01/22/prometheus-operator%E4%BD%BF%E7%94%A8/" rel="next" title="pprometheus-operator使用">
-                  pprometheus-operator使用 <i class="fa fa-angle-right"></i>
+                <a href="/2021/06/17/k8s%E5%8A%A8%E6%80%81%E5%87%86%E5%85%A5%E6%8E%A7%E5%88%B6/" rel="next" title="k8s动态准入控制">
+                  k8s动态准入控制 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>

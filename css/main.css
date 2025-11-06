@@ -966,6 +966,12 @@ kbd {
 figure.highlight {
   overflow: auto;
   position: relative;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  figure.highlight {
+    color-scheme: dark;
+  }
 }
 figure.highlight pre {
   border: 0;
@@ -1686,7 +1692,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #ed8fe7;
+  background: #0df6f6;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);

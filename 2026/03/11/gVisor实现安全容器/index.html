@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-nature.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-nature.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.naturelr.cc","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"codeblock":{"theme":{"light":"base16/tomorrow-night","dark":"base16/tomorrow-night"},"prism":{"light":"prism-one-dark","dark":"prism-one-dark"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.json","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="gVisor是谷歌使用go开发的一个容器安全运行时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="gVisor实现安全容器">
+<meta property="og:url" content="http://blog.naturelr.cc/2026/03/11/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8/index.html">
+<meta property="og:site_name" content="Nature丿灵然">
+<meta property="og:description" content="gVisor是谷歌使用go开发的一个容器安全运行时">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.naturelr.cc/images/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8-1.png">
+<meta property="og:image" content="http://blog.naturelr.cc/images/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8-2.png">
+<meta property="article:published_time" content="2026-03-11T06:03:00.000Z">
+<meta property="article:modified_time" content="2026-03-11T06:07:00.975Z">
+<meta property="article:author" content="Nature丿灵然">
+<meta property="article:tag" content="安全">
+<meta property="article:tag" content="沙箱">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.naturelr.cc/images/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8-1.png">
+
+
+<link rel="canonical" href="http://blog.naturelr.cc/2026/03/11/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://blog.naturelr.cc/2026/03/11/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8/","path":"2026/03/11/gVisor实现安全容器/","title":"gVisor实现安全容器"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>gVisor实现安全容器 | Nature丿灵然</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/bookmark.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Nature丿灵然</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">尽人事听天命</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#docker"><span class="nav-number">2.1.</span> <span class="nav-text">docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#k8s-containerd"><span class="nav-number">2.2.</span> <span class="nav-text">k8s containerd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">2.3.</span> <span class="nav-text">参考资料</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Nature丿灵然</p>
+  <div class="site-description" itemprop="description">Nature丿灵然的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">107</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">66</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/NatureLR" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;NatureLR" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1127711564@qq.com" title="E-Mail → 1127711564@qq.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://blog.naturelr.cc/2026/03/11/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Nature丿灵然">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Nature丿灵然">
+      <meta itemprop="description" content="Nature丿灵然的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="gVisor实现安全容器 | Nature丿灵然">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          gVisor实现安全容器
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-11 14:03:00 / 修改时间：14:07:00" itemprop="dateCreated datePublished" datetime="2026-03-11T14:03:00+08:00">2026-03-11</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><a target="_blank" rel="noopener" href="https://github.com/google/gvisor">gVisor</a>是谷歌使用go开发的一个容器安全运行时</p>
+<span id="more"></span>
+
+<p>使用go实现了内核接口应用程序不直接调用内核</p>
+<h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><p><img src="/../images/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8-1.png" alt="alt text"></p>
+<ul>
+<li>gvisor在内核和应用中间进行一些拦截</li>
+</ul>
+<p><img src="/../images/gVisor%E5%AE%9E%E7%8E%B0%E5%AE%89%E5%85%A8%E5%AE%B9%E5%99%A8-2.png" alt="alt text"></p>
+<ul>
+<li>sentry负责运行容器并拦截应用系统调用请求，同时还有系统调用、信号传递、内存管理和页错逻辑、线程模型等。</li>
+<li>gofer负责提供文件系统访问</li>
+</ul>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><ul>
+<li>国内需要魔法，下面的脚本其实下载了2个二进制，runsc和containerd-shim-runsc-v1</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">(</span>
+  <span class="token builtin class-name">set</span> <span class="token parameter variable">-e</span>
+  <span class="token assign-left variable">ARCH</span><span class="token operator">=</span><span class="token variable"><span class="token variable">$(</span><span class="token function">uname</span> <span class="token parameter variable">-m</span><span class="token variable">)</span></span>
+  <span class="token assign-left variable">URL</span><span class="token operator">=</span>https://storage.googleapis.com/gvisor/releases/release/latest/<span class="token variable">$&#123;ARCH&#125;</span>
+  <span class="token function">wget</span> <span class="token variable">$&#123;URL&#125;</span>/runsc <span class="token variable">$&#123;URL&#125;</span>/runsc.sha512 <span class="token punctuation">\</span>
+    <span class="token variable">$&#123;URL&#125;</span>/containerd-shim-runsc-v1 <span class="token variable">$&#123;URL&#125;</span>/containerd-shim-runsc-v1.sha512
+  sha512sum <span class="token parameter variable">-c</span> runsc.sha512 <span class="token punctuation">\</span>
+    <span class="token parameter variable">-c</span> containerd-shim-runsc-v1.sha512
+  <span class="token function">rm</span> <span class="token parameter variable">-f</span> *.sha512
+  <span class="token function">chmod</span> a+rx runsc containerd-shim-runsc-v1
+  <span class="token function">sudo</span> <span class="token function">mv</span> runsc containerd-shim-runsc-v1 /usr/local/bin
+<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="docker"><a href="#docker" class="headerlink" title="docker"></a>docker</h3><ul>
+<li>配置docker</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">/usr/local/bin/runsc <span class="token function">install</span>
+<span class="token comment"># 2026/03/11 11:02:09 Runtime runsc not found: adding</span>
+<span class="token comment"># 2026/03/11 11:02:09 Successfully updated config.</span>
+<span class="token function">sudo</span> systemctl reload <span class="token function">docker</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>测试下</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">--rm</span> <span class="token parameter variable">--runtime</span><span class="token operator">=</span>runsc hello-world
+<span class="token comment"># Unable to find image 'hello-world:latest' locally</span>
+<span class="token comment"># latest: Pulling from library/hello-world</span>
+<span class="token comment"># 17eec7bbc9d7: Pull complete</span>
+<span class="token comment"># Digest: sha256:85404b3c53951c3ff5d40de0972b1bb21fafa2e8daa235355baf44f33db9dbdd</span>
+<span class="token comment"># Status: Downloaded newer image for hello-world:latest</span>
+<span class="token comment"># </span>
+<span class="token comment"># Hello from Docker!</span>
+<span class="token comment"># This message shows that your installation appears to be working correctly.</span>
+<span class="token comment"># </span>
+<span class="token comment"># To generate this message, Docker took the following steps:</span>
+<span class="token comment">#  1. The Docker client contacted the Docker daemon.</span>
+<span class="token comment">#  2. The Docker daemon pulled the "hello-world" image from the Docker Hub.</span>
+<span class="token comment">#     (amd64)</span>
+<span class="token comment">#  3. The Docker daemon created a new container from that image which runs the</span>
+<span class="token comment">#     executable that produces the output you are currently reading.</span>
+<span class="token comment">#  4. The Docker daemon streamed that output to the Docker client, which sent it</span>
+<span class="token comment">#     to your terminal.</span>
+<span class="token comment"># </span>
+<span class="token comment"># To try something more ambitious, you can run an Ubuntu container with:</span>
+<span class="token comment">#  $ docker run -it ubuntu bash</span>
+<span class="token comment"># </span>
+<span class="token comment"># Share images, automate workflows, and more with a free Docker ID:</span>
+<span class="token comment">#  https://hub.docker.com/</span>
+<span class="token comment"># </span>
+<span class="token comment"># For more examples and ideas, visit:</span>
+<span class="token comment">#  https://docs.docker.com/get-started/</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="k8s-containerd"><a href="#k8s-containerd" class="headerlink" title="k8s containerd"></a>k8s containerd</h3><ul>
+<li>在containerd的配置中配置<code>runsc</code></li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">|</span> <span class="token function">sudo</span> <span class="token function">tee</span> /etc/containerd/config.toml</span>
+version = 2
+[plugins."io.containerd.runtime.v1.linux"]
+  shim_debug = true
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+  runtime_type = "io.containerd.runc.v2"
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc]
+  runtime_type = "io.containerd.runsc.v1"
+EOF</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li><p>containerd需要cni支持，这里时在已经安装了的cni的k8s节点上，且需要cni配置文件在<code>/etc/cni/net.d</code></p>
+</li>
+<li><p>重启contaienrd使配置生效</p>
+</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> systemctl restart containerd<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>使用ctr命令测试下</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> ctr image pull docker.io/library/hello-world:latest
+<span class="token comment"># docker.io/library/hello-world:latest:                                             resolved       |++++++++++++++++++++++++++++++++++++++|</span>
+<span class="token comment"># docker.io/library/hello-world:latest:                                             resolved       |++++++++++++++++++++++++++++++++++++++|</span>
+<span class="token comment"># index-sha256:85404b3c53951c3ff5d40de0972b1bb21fafa2e8daa235355baf44f33db9dbdd:    done           |++++++++++++++++++++++++++++++++++++++|</span>
+<span class="token comment"># manifest-sha256:2771e37a12b7bcb2902456ecf3f29bf9ee11ec348e66e8eb322d9780ad7fc2df: done           |++++++++++++++++++++++++++++++++++++++|</span>
+<span class="token comment"># layer-sha256:17eec7bbc9d79fa397ac95c7283ecd04d1fe6978516932a3db110c6206430809:    done           |++++++++++++++++++++++++++++++++++++++|</span>
+<span class="token comment"># config-sha256:1b44b5a3e06a9aae883e7bf25e45c100be0bb81a0e01b32de604f3ac44711634:   done           |++++++++++++++++++++++++++++++++++++++|</span>
+<span class="token comment"># elapsed: 4.4 s                                                                    total:  12.6 K (2.9 KiB/s)</span>
+<span class="token comment"># unpacking linux/amd64 sha256:85404b3c53951c3ff5d40de0972b1bb21fafa2e8daa235355baf44f33db9dbdd...</span>
+<span class="token comment"># done: 18.879073ms</span>
+<span class="token function">sudo</span> ctr run <span class="token parameter variable">--runtime</span> io.containerd.runsc.v1 <span class="token parameter variable">-t</span> <span class="token parameter variable">--rm</span> docker.io/library/hello-world:latest hello-wrold
+<span class="token comment"># </span>
+<span class="token comment"># Hello from Docker!</span>
+<span class="token comment"># This message shows that your installation appears to be working correctly.</span>
+<span class="token comment"># </span>
+<span class="token comment"># To generate this message, Docker took the following steps:</span>
+<span class="token comment">#  1. The Docker client contacted the Docker daemon.</span>
+<span class="token comment">#  2. The Docker daemon pulled the "hello-world" image from the Docker Hub.</span>
+<span class="token comment">#     (amd64)</span>
+<span class="token comment">#  3. The Docker daemon created a new container from that image which runs the</span>
+<span class="token comment">#     executable that produces the output you are currently reading.</span>
+<span class="token comment">#  4. The Docker daemon streamed that output to the Docker client, which sent it</span>
+<span class="token comment">#     to your terminal.</span>
+<span class="token comment"># </span>
+<span class="token comment"># To try something more ambitious, you can run an Ubuntu container with:</span>
+<span class="token comment">#  $ docker run -it ubuntu bash</span>
+<span class="token comment"># </span>
+<span class="token comment"># Share images, automate workflows, and more with a free Docker ID:</span>
+<span class="token comment">#  https://hub.docker.com/</span>
+<span class="token comment"># </span>
+<span class="token comment"># For more examples and ideas, visit:</span>
+<span class="token comment">#  https://docs.docker.com/get-started/^C</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> ctr image pull docker.io/library/busybox:latest
+<span class="token function">sudo</span> ctr run <span class="token parameter variable">--runtime</span> io.containerd.run.runsc.v1 <span class="token parameter variable">-t</span> <span class="token parameter variable">--rm</span> docker.io/library/busybox:latest gvisord <span class="token function">dmesg</span>
+<span class="token comment"># [   0.000000] Starting gVisor...</span>
+<span class="token comment"># [   0.543065] Generating random numbers by fair dice roll...</span>
+<span class="token comment"># [   0.917238] Segmenting fault lines...</span>
+<span class="token comment"># [   1.082058] Gathering forks...</span>
+<span class="token comment"># [   1.304673] Searching for socket adapter...</span>
+<span class="token comment"># [   1.753377] Deleting VFS and rebuilding it from scratch...</span>
+<span class="token comment"># [   1.874194] Reticulating splines...</span>
+<span class="token comment"># [   2.238957] Preparing for the zombie uprising...</span>
+<span class="token comment"># [   2.623573] Politicking the oom killer...</span>
+<span class="token comment"># [   2.700495] Searching for needles in stacks...</span>
+<span class="token comment"># [   2.772464] Reading process obituaries...</span>
+<span class="token comment"># [   2.977811] Ready!</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>添加k8s runtime</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">|</span> kubectl apply <span class="token parameter variable">-f</span> -</span>
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+handler: runsc
+EOF</span>
+<span class="token comment"># runtimeclass.node.k8s.io/gvisor created</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>测试一下，需要指定<code>runtimeClassName</code></li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">cat</span> <span class="token operator">&lt;&lt;</span><span class="token string">EOF<span class="token bash punctuation"> <span class="token operator">|</span> kubectl apply <span class="token parameter variable">-f</span> -</span>
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-gvisor
+spec:
+  runtimeClassName: gvisor
+  containers:
+  - name: nginx
+    image: nginx
+EOF</span>
+<span class="token comment"># pod/nginx-gvisor created</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>如果pod跑起来则成功</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">kubectl get pod nginx-gvisor <span class="token parameter variable">-o</span> wide
+<span class="token comment"># NAME           READY   STATUS    RESTARTS   AGE   IP            NODE           NOMINATED NODE   READINESS GATES</span>
+<span class="token comment"># nginx-gvisor   1/1     Running   0          16m   10.7.143.15   10.7.144.212   &lt;none>           &lt;none></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<ul>
+<li>在对应的节点上用<code>ps -ef |grep runsc</code>可以看到相关进程</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">ps</span> <span class="token parameter variable">-ef</span> <span class="token operator">|</span><span class="token function">grep</span> runsc
+<span class="token comment"># root      615724       1  0 11:33 ?        00:00:00 /usr/local/bin/containerd-shim-runsc-v1 -namespace k8s.io -address /run/containerd/containerd.sock -publish-binary /usr/bin/containerd</span>
+<span class="token comment"># root      615742  615724  0 11:33 ?        00:00:00 runsc-gofer --panic-log=/var/log/pods/default_nginx-gvisor_22fa2e53-5e27-4d33-8814-2485706947c1/gvisor_panic.log --root=/run/containerd/runsc/k8s.io --log=/run/containerd/io.containerd.runtime.v2.task/k8s.io/613b2526c73a51d1740591708f946b86f0e63c04af92857f00246bb31abd4fa2/log.json --log-format=json --log-fd=3 gofer --bundle=/run/containerd/io.containerd.runtime.v2.task/k8s.io/613b2526c73a51d1740591708f946b86f0e63c04af92857f00246bb31abd4fa2 --gofer-mount-confs=lisafs:none,lisafs:none --io-fds=7,8 --mounts-fd=5 --rpc-fd=6 --spec-fd=4 --sync-chroot-fd=-1 --sync-userns-fd=-1 --proc-mount-sync-fd=17 --apply-caps=false --setup-root=false</span>
+<span class="token comment"># root      615746  615724  2 11:33 ?        00:00:24 runsc-sandbox --log=/run/containerd/io.containerd.runtime.v2.task/k8s.io/613b2526c73a51d1740591708f946b86f0e63c04af92857f00246bb31abd4fa2/log.json --log-format=json --panic-log=/var/log/pods/default_nginx-gvisor_22fa2e53-5e27-4d33-8814-2485706947c1/gvisor_panic.log --root=/run/containerd/runsc/k8s.io --log-fd=3 --panic-log-fd=4 boot --apply-caps=false --bundle=/run/containerd/io.containerd.runtime.v2.task/k8s.io/613b2526c73a51d1740591708f946b86f0e63c04af92857f00246bb31abd4fa2 --controller-fd=10 --cpu-num=2 --dev-io-fd=-1 --gofer-mount-confs=lisafs:none,lisafs:none --io-fds=5,6 --mounts-fd=7 --setup-root=false --spec-fd=11 --start-sync-fd=8 --stdio-fds=12,13,14 --total-host-memory=3904032768 --total-memory=3904032768 --user-log-fd=9 --product-name=KVM --host-thp-shmem-enabled=never --host-thp-defrag=madvise --proc-mount-sync-fd=24 613b2526c73a51d1740591708f946b86f0e63c04af92857f00246bb31abd4fa2</span>
+<span class="token comment"># root      615792  615724  0 11:33 ?        00:00:00 runsc --root=/run/containerd/runsc/k8s.io --log=/run/containerd/io.containerd.runtime.v2.task/k8s.io/613b2526c73a51d1740591708f946b86f0e63c04af92857f00246bb31abd4fa2/log.json --log-format=json --panic-log=/var/log/pods/default_nginx-gvisor_22fa2e53-5e27-4d33-8814-2485706947c1/gvisor_panic.log wait 613b2526c73a51d1740591708f946b86f0e63c04af92857f00246bb31abd4fa2</span>
+<span class="token comment"># root      615815       1  0 11:33 ?        00:00:00 /usr/local/bin/containerd-shim-runsc-v1 -namespace k8s.io -address /run/containerd/containerd.sock -publish-binary /usr/bin/containerd</span>
+<span class="token comment"># root      615839  615815  0 11:33 ?        00:00:00 runsc-gofer --root=/run/containerd/runsc/k8s.io --log=/run/containerd/io.containerd.runtime.v2.task/k8s.io/b17f16f539b8964096b9f5b9a720528160c9811bbb6896bab8dd00b9358abb5d/log.json --log-format=json --log-fd=3 gofer --bundle=/run/containerd/io.containerd.runtime.v2.task/k8s.io/b17f16f539b8964096b9f5b9a720528160c9811bbb6896bab8dd00b9358abb5d --gofer-mount-confs=lisafs:self,lisafs:none,lisafs:none,lisafs:none,lisafs:none,lisafs:none --io-fds=7,8,9,10,11,12 --mounts-fd=5 --rpc-fd=6 --spec-fd=4 --sync-chroot-fd=-1 --sync-userns-fd=-1 --proc-mount-sync-fd=22 --apply-caps=false --setup-root=false</span>
+<span class="token comment"># root      615870  615815  0 11:33 ?        00:00:00 runsc --root=/run/containerd/runsc/k8s.io --log=/run/containerd/io.containerd.runtime.v2.task/k8s.io/b17f16f539b8964096b9f5b9a720528160c9811bbb6896bab8dd00b9358abb5d/log.json --log-format=json wait b17f16f539b8964096b9f5b9a720528160c9811bbb6896bab8dd00b9358abb5d</span>
+<span class="token comment"># root      627826   10796  0 11:54 pts/1    00:00:00 grep --color=auto runsc</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p><a target="_blank" rel="noopener" href="https://gvisor.dev/docs/">https://gvisor.dev/docs/</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AE%89%E5%85%A8/" rel="tag"># 安全</a>
+              <a href="/tags/%E6%B2%99%E7%AE%B1/" rel="tag"># 沙箱</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/10/%E4%BD%BF%E7%94%A8linuxkit%E7%94%A8yaml%E6%96%87%E4%BB%B6%E8%87%AA%E5%AE%9A%E4%B9%89linux%E7%B3%BB%E7%BB%9F/" rel="prev" title="使用linuxkit用yaml文件自定义linux系统">
+                  <i class="fa fa-angle-left"></i> 使用linuxkit用yaml文件自定义linux系统
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Nature丿灵然</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/shizuku.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false}});</script></body>
+</html>
